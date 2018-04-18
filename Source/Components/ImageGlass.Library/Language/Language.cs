@@ -1,6 +1,6 @@
 ﻿/*
 ImageGlass Project - Image viewer for Windows
-Copyright (C) 2017 DUONG DIEU PHAP
+Copyright (C) 2018 DUONG DIEU PHAP
 Project homepage: http://imageglass.org
 
 This program is free software: you can redistribute it and/or modify
@@ -115,7 +115,7 @@ namespace ImageGlass.Library
             _langName = "Local name of the language";
             _author = "ImageGlass community";
             _description = "English name of language";
-            _minVersion = "4.5.10.30";
+            _minVersion = "5.0.5.6";
             _fileName = "";
             _isRightToLeftLayout = RightToLeft.No;
 
@@ -309,14 +309,15 @@ namespace ImageGlass.Library
 
             Items.Add("frmMain.mnuMainClipboard", "Clipboard"); //v3.0
             Items.Add("frmMain.mnuMainCopy", "Copy"); //v3.0
-            Items.Add("frmMain.mnuMainCopyMulti", "Copy multiple files"); //v3.0
+            Items.Add("frmMain.mnuMainCopyImageData", "Copy image data"); //v5.0
             Items.Add("frmMain.mnuMainCut", "Cut"); //v3.0
-            Items.Add("frmMain.mnuMainCutMulti", "Cut multiple files"); //v3.0
+            //Items.Add("frmMain.mnuMainCopyMulti", "Copy multiple files"); //v3.0, removed 5.0
+            //Items.Add("frmMain.mnuMainCutMulti", "Cut multiple files"); //v3.0, removed 5.0
             Items.Add("frmMain.mnuMainCopyImagePath", "Copy image path"); //v3.0
             Items.Add("frmMain.mnuMainClearClipboard", "Clear clipboard"); //v3.0
 
             Items.Add("frmMain.mnuMainShare", "Share ..."); //v3.0
-            Items.Add("frmMain.mnuMainShareFacebook", "Upload to Facebook"); //v3.0
+            //Items.Add("frmMain.mnuMainShareFacebook", "Upload to Facebook"); //v3.0, removed v5.0
 
             Items.Add("frmMain.mnuMainLayout", "Layout"); //v3.0
             Items.Add("frmMain.mnuMainToolbar", "Toolbar"); //v3.0
@@ -326,6 +327,7 @@ namespace ImageGlass.Library
 
             Items.Add("frmMain.mnuMainTools", "Tools"); //v3.0
             Items.Add("frmMain.mnuMainExtensionManager", "Extension manager"); //v3.0
+            Items.Add("frmMain.mnuMainColorPicker", "Color picker");
 
             Items.Add("frmMain.mnuMainSettings", "Settings"); //v3.0
             Items.Add("frmMain.mnuMainAbout", "About"); //v3.0
@@ -348,10 +350,12 @@ namespace ImageGlass.Library
             Items.Add("frmMain._SlideshowMessage", "Press ESC to exit slideshow.\n Right click to open context menu.");//v2.0 beta
             Items.Add("frmMain._SlideshowMessagePause", "Slideshow is paused"); // v4.0
             Items.Add("frmMain._SlideshowMessageResume", "Slideshow is resumed"); // v4.0
-            Items.Add("frmMain._CopyFileText", "Copied {0} file(s)."); //v2.0 final
-            Items.Add("frmMain._CutFileText", "Cut {0} file(s)."); //v2.0 final
-            Items.Add("frmMain._ClearClipboard", "Clipboard was cleared."); //v2.0 final
+            Items.Add("frmMain._CopyFileText", "Copied {0} file(s)"); //v2.0 final
+            Items.Add("frmMain._CutFileText", "Cut {0} file(s)"); //v2.0 final
+            Items.Add("frmMain._CopyImageData", "Image was copied to clipboard"); //v5.0
+            Items.Add("frmMain._ClearClipboard", "Clipboard was cleared"); //v2.0 final
             Items.Add("frmMain._SaveChanges", "Saving change..."); //v2.0 final
+            Items.Add("frmMain._SaveImage", "Image was saved to\r\n{0}"); //v5.0
             Items.Add("frmMain._Loading", "Loading..."); //v3.0
             Items.Add("frmMain._FirstItemOfList", "Reached the first image"); //v4.0
             Items.Add("frmMain._LastItemOfList", "Reached the last image"); //v4.0
@@ -365,21 +369,6 @@ namespace ImageGlass.Library
             Items.Add("frmExtension.btnRefreshAllExt", "Refresh"); //v2.0 final
             Items.Add("frmExtension.btnInstallExt", "Install"); //v2.0 final            
             Items.Add("frmExtension.btnClose", "Close");
-            #endregion
-
-
-            #region frmFacebook
-            Items.Add("frmFacebook.lblMessage", "Message");
-            Items.Add("frmFacebook.btnUpload._Upload", "Upload");
-            Items.Add("frmFacebook.btnUpload._Cancel", "Cancel");
-            Items.Add("frmFacebook.btnUpload._ViewImage", "View image");
-            Items.Add("frmFacebook.btnClose", "Close");
-            Items.Add("frmFacebook._StatusBegin", "Click '{0}' to begin");
-            Items.Add("frmFacebook._StatusInvalid", "Invalid filename");
-            Items.Add("frmFacebook._StatusUploading", "Uploading...");
-            Items.Add("frmFacebook._StatusCancel", "Cancelled");
-            Items.Add("frmFacebook._StatusSuccessful", "Successful");
-            Items.Add("frmFaceBookLogin._Text", "Logging in to Facebook ...");
             #endregion
 
 
@@ -418,6 +407,7 @@ namespace ImageGlass.Library
             Items.Add("frmSetting.lblHeadStartup", "Start up"); //v4.0
             Items.Add("frmSetting.chkWelcomePicture", "Show welcome picture");
             Items.Add("frmSetting.chkShowToolBar", "Show toolbar when starting up"); //v4.0
+            
             #endregion
 
 
@@ -525,6 +515,32 @@ namespace ImageGlass.Library
             Items.Add("frmSetting.btnResetExt", "Reset to default"); // 4.0
             #endregion
 
+            
+            #region TAB Toolbar
+            // V5.0
+            Items.Add("frmSetting.txtSeparator", "Separator"); // i.e. 'toolbar separator'
+            Items.Add("frmSetting.lblToolbar", "Toolbar");
+            Items.Add("frmSetting.lblToolbarTT", "Configure toolbar buttons"); // tooltip
+            Items.Add("frmSetting.lblUsedBtns", "Current Buttons:");
+            Items.Add("frmSetting.lblAvailBtns", "Available Buttons:");
+            Items.Add("frmSetting.lblRestartForChange", "Note: toolbar changes will not take effect until after restart.");
+
+            Items.Add("frmSetting.btnMoveDownTT", "Move selected button down"); // tooltip
+            Items.Add("frmSetting.btnMoveLeftTT", "Remove selected button(s) from the toolbar"); // tooltip
+            Items.Add("frmSetting.btnMoveRightTT", "Add selected button(s) to the toolbar"); // tooltip
+            Items.Add("frmSetting.btnMoveUpTT", "Move selected button up"); // tooltip
+
+            #endregion
+
+
+            #region TAB Color Picker
+            Items.Add("frmSetting.lblColorCodeFormat", "Color code format"); //v5.0
+            Items.Add("frmSetting.chkColorUseRGBA", "Use RGBA format"); //v5.0
+            Items.Add("frmSetting.chkColorUseHEXA", "Use HEX with alpha format"); //v5.0
+            Items.Add("frmSetting.chkColorUseHSLA", "Use HSLA format"); //v5.0
+            Items.Add("frmSetting.lblDefaultColorCode", "Default color code format when copying"); //v5.0
+            #endregion
+
 
             #region Language
             Items.Add("frmSetting.lblLanguageText", "Installed languages");
@@ -536,6 +552,8 @@ namespace ImageGlass.Library
             Items.Add("frmSetting.lnkEdit", "> Edit selected language pack");
             Items.Add("frmSetting.lnkGetMoreLanguage", "> Get more language packs");
             #endregion
+
+            
             #endregion
 
 
@@ -605,7 +623,24 @@ namespace ImageGlass.Library
             //this.Items.Add("frmSetting.lblFileAssociationsMng", "File associations:"); //add 2.0 final, remove 3.0
             //this.Items.Add("frmSetting.btnSetAssociations", "Set associations"); //v2.0 final, remove 3.0
             //Items.Add("frmSetting.btnOpenFileAssociations", "Open File Associations"); //v2.0 final, -3.5
+
+
+            #region frmFacebook
+            //Items.Add("frmFacebook.lblMessage", "Message"); //removed v5.0
+            //Items.Add("frmFacebook.btnUpload._Upload", "Upload"); //removed v5.0
+            //Items.Add("frmFacebook.btnUpload._Cancel", "Cancel"); //removed v5.0
+            //Items.Add("frmFacebook.btnUpload._ViewImage", "View image"); //removed v5.0
+            //Items.Add("frmFacebook.btnClose", "Close"); //removed v5.0
+            //Items.Add("frmFacebook._StatusBegin", "Click '{0}' to begin"); //removed v5.0
+            //Items.Add("frmFacebook._StatusInvalid", "Invalid filename"); //removed v5.0
+            //Items.Add("frmFacebook._StatusUploading", "Uploading..."); //removed v5.0
+            //Items.Add("frmFacebook._StatusCancel", "Cancelled"); //removed v5.0
+            //Items.Add("frmFacebook._StatusSuccessful", "Successful"); //removed v5.0
+            //Items.Add("frmFaceBookLogin._Text", "Logging in to Facebook ..."); //removed v5.0
             #endregion
+            #endregion
+
+
 
         }
 
