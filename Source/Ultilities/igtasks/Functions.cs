@@ -1,169 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Security.Principal;
-using System.Security.Permissions;
-using System.Windows.Forms;
-using Microsoft.Win32;
-using System.Configuration;
-using ImageGlass.Services.Configuration;
+﻿/*
+ImageGlass Project - Image viewer for Windows
+Copyright (C) 2020 DUONG DIEU PHAP
+Project homepage: https://imageglass.org
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+using ImageGlass.Base;
 using ImageGlass.Library;
-using System.IO;
-using System.Reflection;
 using ImageGlass.Library.FileAssociations;
+using Microsoft.Win32;
+using System;
 using System.Diagnostics;
+using System.IO;
+using System.Windows.Forms;
 
-namespace igtasks
-{
-    public static class Functions
-    {
-        /// <summary>
-        /// Thêm menu 'Open with ImageGlass' vào menu ngữ cảnh
-        /// </summary>
-        /// <param name="igPath">Đường dẫn của tập tin ImageGlass.exe</param>        
-        public static void AddImageGlassToContextMenu(string igPath)
-        {
-            try
-            {
-                string supportedExts = "*.jpg;*.jpe;*.jfif;*.jpeg;*.png;" +
-                                                         "*.gif;*.ico;*.bmp;*.dib;*.tif;*.tiff;" +
-                                                         "*.exif;*.wmf;*.emf;";
-                supportedExts = GlobalSetting.GetConfig("SupportedExtensions", supportedExts);
-
-                AddImageGlassToContextMenu(igPath, supportedExts);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Thêm menu 'Open with ImageGlass' vào menu ngữ cảnh
-        /// </summary>
-        /// <param name="igPath">Đường dẫn của tập tin ImageGlass.exe</param>
-        /// <param name="extensions">Thành phần mở rộng, ví dụ: .png;.jpg</param>
-        public static void AddImageGlassToContextMenu(string igPath, string extensions)
-        {
-            try
-            {
-                string[] exts = extensions.Replace("*", "").Split(new char[] { ';' },
-                                                StringSplitOptions.RemoveEmptyEntries);
-                
-                foreach (string ext in exts)
-                {
-                    AddContextMenuItem(ext, "Open with ImageGlass", "", igPath + " %1", igPath, "0");
-                }
-
-                GlobalSetting.SetConfig("ContextMenuExtensions", extensions);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-
-        }
-
-
-        /// <summary>
-        /// Xoá tất cả menu 'Open with ImageGlass'
-        /// </summary>
-        public static void RemoveImageGlassToContextMenu()
-        {
-            try
-            {
-                string supportedExts = "*.jpg;*.jpe;*.jfif;*.jpeg;*.png;" +
-                                        "*.gif;*.ico;*.bmp;*.dib;*.tif;*.tiff;" +
-                                        "*.exif;*.wmf;*.emf;";
-                supportedExts = GlobalSetting.GetConfig("SupportedExtensions", supportedExts);
-
-                string[] exts = supportedExts.Replace("*", "").Split(new char[] { ';' },
-                                                StringSplitOptions.RemoveEmptyEntries);
-
-                foreach (string ext in exts)
-                {
-                    RemoveContextMenuItem(ext, "Open with ImageGlass");
-                }
-
-                GlobalSetting.SetConfig("ContextMenuExtensions", "");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Xoá menu 'Open with ImageGlass'
-        /// </summary>
-        /// <param name="extensions">Thành phần mở rộng, ví dụ: .png;.jpg;.bmp</param>
-        public static void RemoveImageGlassToContextMenu(string extensions)
-        {
-            try
-            {
-                string[] exts = extensions.Replace("*", "").Split(new char[] { ';' },
-                                                StringSplitOptions.RemoveEmptyEntries);
-
-                foreach (string ext in exts)
-                {
-                    RemoveContextMenuItem(ext, "Open with ImageGlass");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Install new extensions
-        /// </summary>
-        public static void InstallExtensions()
-        {
-            OpenFileDialog o = new OpenFileDialog();
-            o.Filter = "ImageGlass extensions (*.dll)|*.dll";
-            o.Multiselect = true;
-
-            if (o.ShowDialog() == DialogResult.OK)
-            {
-                foreach (string f in o.FileNames)
-                {
-                    try
-                    {
-                        File.Copy(f, GlobalSetting.StartUpDir + "Plugins\\" + Path.GetFileName(f));
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    
-                }
-            }
-        }
-
+namespace igtasks {
+    public static class Functions {
         /// <summary>
         /// Install new language packs
         /// </summary>
-        public static void InstallLanguagePacks()
-        {
-            OpenFileDialog o = new OpenFileDialog();
-            o.Filter = "ImageGlass language pack (*.iglang)|*.iglang";
-            o.Multiselect = true;
+        public static void InstallLanguagePacks() {
+            var o = new OpenFileDialog {
+                Filter = "ImageGlass language pack (*.iglang)|*.iglang",
+                Multiselect = true
+            };
 
-            if (o.ShowDialog() == DialogResult.OK)
-            {
-                foreach (string f in o.FileNames)
-                {
-                    try
-                    {
-                        File.Copy(f, GlobalSetting.StartUpDir + "Languages\\" + Path.GetFileName(f));
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+            if (o.ShowDialog() == DialogResult.OK) {
+                // create directory if not exist
+                if (!Directory.Exists(App.StartUpDir(Dir.Languages))) {
+                    Directory.CreateDirectory(App.StartUpDir(Dir.Languages));
+                }
 
+                foreach (var f in o.FileNames) {
+                    try {
+                        File.Copy(f, App.StartUpDir(Dir.Languages, Path.GetFileName(f)));
+                    }
+                    catch (Exception ex) {
+                        MessageBox.Show(ex.Message, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
@@ -171,238 +56,210 @@ namespace igtasks
         /// <summary>
         /// Create new language packs
         /// </summary>
-        public static void CreateNewLanguagePacks()
-        {
-            SaveFileDialog s = new SaveFileDialog();
-            s.Filter = "ImageGlass language pack (*.iglang)|*.iglang";
+        public static void CreateNewLanguagePacks() {
+            var s = new SaveFileDialog {
+                Filter = "ImageGlass language pack (*.iglang)|*.iglang"
+            };
 
-            if (s.ShowDialog() == DialogResult.OK)
-            {
-                Language l = new Language();
+            if (s.ShowDialog() == DialogResult.OK) {
+                var l = new Language();
                 l.ExportLanguageToXML(s.FileName);
 
-                try
-                {
-                    Process p = new Process();
+                try {
+                    var p = new Process();
                     p.StartInfo.ErrorDialog = true;
                     p.StartInfo.FileName = "notepad.exe";
                     p.StartInfo.Arguments = "\"" + s.FileName + "\"";
                     p.Start();
                 }
-                catch { }
+                catch (Exception ex) {
+                    MessageBox.Show(ex.Message, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
         /// <summary>
         /// Edit language packs
         /// </summary>
-        public static void EditLanguagePacks(string filename)
-        {
-            try
-            {
-                Process p = new Process();
+        public static void EditLanguagePacks(string filename) {
+            try {
+                var p = new Process();
                 p.StartInfo.ErrorDialog = true;
                 p.StartInfo.FileName = "notepad.exe";
                 p.StartInfo.Arguments = "\"" + filename + "\"";
                 p.Start();
             }
-            catch { }
-        }
-
-        /// <summary>
-        /// Set file associations
-        /// </summary>
-        /// <param name="igPath">ImageGlass.exe path</param>
-        public static void SetAssociations(string igPath)
-        {
-            try
-            {
-                string supportedExts = "*.jpg;*.jpe;*.jfif;*.jpeg;*.png;" +
-                                                         "*.gif;*.ico;*.bmp;*.dib;*.tif;*.tiff;" +
-                                                         "*.exif;*.wmf;*.emf;";
-                supportedExts = GlobalSetting.GetConfig("SupportedExtensions", supportedExts);
-                Functions.RegisterAssociation(supportedExts, igPath);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
+            catch (Exception ex) {
+                MessageBox.Show(ex.Message, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        #region General functions
         /// <summary>
-        /// Register file association
+        /// Delete registry association of ImageGlass
         /// </summary>
-        /// <param name="exts">Extensions, for ex: *.png;*.jpg</param>
-        /// <param name="appPath">Executable file</param>
-        public static void RegisterAssociation(string appPath, string exts)
-        {
-            string[] ext_list = exts.Replace("*", "").Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        /// <param name="exts">Extensions string to delete. Ex: *.png;*.bmp;</param>
+        /// <param name="deleteAllKeys">TRUE: delete all keys</param>
+        /// <returns>0 = SUCCESS; 1 = ERROR</returns>
+        public static int DeleteRegistryAssociations(string exts, bool deleteAllKeys = false) {
+            var reg = new RegistryHelper {
+                ShowError = true,
+                BaseRegistryKey = Registry.LocalMachine,
 
-            foreach (string ext in ext_list)
-            {
-                FileAssociationInfo fa = new FileAssociationInfo(ext);
-                if (!fa.Exists)
-                {
-                    return;
-                }
+                // delete current registry settings
+                SubKey = @"SOFTWARE\PhapSoftware\ImageGlass\Capabilities\FileAssociations"
+            };
 
-                ProgramAssociationInfo pa = new ProgramAssociationInfo(fa.ProgID);
+            if (!reg.DeleteSubKeyTree()) return 1;
 
-                if (!pa.Exists)
-                {
-                    return;
-                }
+            if (deleteAllKeys) {
+                reg.SubKey = @"SOFTWARE\RegisteredApplications";
+                if (!reg.DeleteKey("ImageGlass")) return 1;
 
-                ProgramVerb[] verbs = pa.Verbs;
-                List<ProgramVerb> l = new List<ProgramVerb>();
-                l.AddRange(verbs);
-
-                //remove existed verb
-                ProgramVerb openVerb = l.SingleOrDefault(v => v.Name == "open");
-                if (openVerb != null)
-                {
-                    l.Remove(openVerb);
-                }
-
-                //add new value
-                openVerb = new ProgramVerb("open", "\"" + appPath + "\" \"%1\"");
-                l.Add(openVerb);
-
-                //save & apply changes
-                pa.Verbs = l.ToArray();
-
-                GlobalSetting.SetConfig("ContextMenuExtensions", exts);
+                reg.SubKey = @"SOFTWARE\PhapSoftware";
+                if (!reg.DeleteSubKeyTree()) return 1;
             }
+
+            var extList = exts.Split("*;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            foreach (var ext in extList) {
+                reg.SubKey = @"SOFTWARE\Classes\ImageGlass.AssocFile" + ext.ToUpper();
+                if (!reg.DeleteSubKeyTree()) return 1;
+            }
+
+            return 0;
         }
 
+        /// <summary>
+        /// Register file associations
+        /// </summary>
+        /// <param name="extensions">Extension string, ex: *.png;*.svg;</param>
+        /// <returns>0 = SUCCESS; 1 = ERROR</returns>
+        public static int SetRegistryAssociations(string extensions) {
+            DeleteRegistryAssociations(extensions);
+
+            var reg = new RegistryHelper {
+                ShowError = true,
+                BaseRegistryKey = Registry.LocalMachine,
+
+                // Register the application to Registry
+                SubKey = @"SOFTWARE\RegisteredApplications"
+            };
+
+            if (!reg.Write("ImageGlass", @"SOFTWARE\PhapSoftware\ImageGlass\Capabilities")) {
+                return 1;
+            }
+
+            // Register Capabilities info
+            reg.SubKey = @"SOFTWARE\PhapSoftware\ImageGlass\Capabilities";
+            if (!reg.Write("ApplicationName", "ImageGlass")) {
+                return 1;
+            }
+
+            if (!reg.Write("ApplicationIcon", $"\"{App.IGExePath}\", 0")) {
+                return 1;
+            }
+
+            if (!reg.Write("ApplicationDescription", "A lightweight, versatile image viewer")) {
+                return 1;
+            }
+
+            // Register File Associations
+            var extList = extensions.Split("*;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var ext in extList) {
+                var keyname = "ImageGlass.AssocFile" + ext.ToUpper();
+
+                reg.SubKey = @"SOFTWARE\PhapSoftware\ImageGlass\Capabilities\FileAssociations";
+                if (!reg.Write(ext, keyname)) {
+                    return 1;
+                }
+
+                // File type description: ImageGlass JPG File
+                reg.SubKey = @"SOFTWARE\Classes\" + keyname;
+                if (!reg.Write("", $"ImageGlass {ext.Substring(1).ToUpper()} File")) {
+                    return 1;
+                }
+
+                // File type icon
+                var iconPath = App.StartUpDir(@"Ext-Icons\" + ext.ToUpper().Substring(1) + ".ico");
+                if (!File.Exists(iconPath)) {
+                    iconPath = App.IGExePath;
+                }
+
+                reg.SubKey = @"SOFTWARE\Classes\" + keyname + @"\DefaultIcon";
+                if (!reg.Write("", $"\"{iconPath}\", 0")) {
+                    return 1;
+                }
+
+                // Friendly App Name
+                reg.SubKey = @"SOFTWARE\Classes\" + keyname + @"\shell\open";
+                if (!reg.Write("FriendlyAppName", "ImageGlass")) {
+                    return 1;
+                }
+
+                // Execute command
+                reg.SubKey = @"SOFTWARE\Classes\" + keyname + @"\shell\open\command";
+                if (!reg.Write("", $"\"{App.IGExePath}\" \"%1\"")) {
+                    return 1;
+                }
+            }
+
+            // Register Web-to-App linking
+            return SetURIScheme();
+        }
 
         /// <summary>
-        /// Thêm menu vào menu ngữ cảnh
+        /// Delete URI Scheme registry
         /// </summary>
-        /// <param name="extension">Tên thành phần mở rộng, ví dụ .png</param>
-        /// <param name="menuName">Tên của menu mới</param>
-        /// <param name="menuDescription">Miêu tả của menu mới</param>
-        /// <param name="exePath">Đường dẫn ứng dụng + command</param>
-        /// <param name="iconFile">Đường dẫn tập tin icon, có thể là thư viện icon DLL, EXE, ...</param>
-        /// <param name="iconIndex">Chỉ số icon sẽ hiển thị, mặc định là 0</param>
         /// <returns></returns>
-        public static bool AddContextMenuItem(string extension, string menuName,
-                                            string menuDescription, string exePath,
-                                            string iconFile, string iconIndex)
-        {
-            bool ret = false;
+        public static int DeleteURIScheme() {
+            var baseKey = $@"SOFTWARE\Classes\{Constants.URI_SCHEME}";
 
-            //Open HKEY_CLASS_ROOT\[extension]
-            RegistryKey rkey = Registry.ClassesRoot.OpenSubKey(extension);
+            var reg = new RegistryHelper {
+                ShowError = true,
+                BaseRegistryKey = Registry.CurrentUser,
+                SubKey = baseKey
+            };
 
-            if (rkey != null)
-            {
-                //Get extension string
-                string extstring = rkey.GetValue("").ToString();
-                rkey.Close();
+            if (!reg.DeleteSubKeyTree()) return 1;
 
-                if (extstring != null)
-                {
-                    if (extstring.Length > 0)
-                    {
-                        //Open HKEY_CLASS_ROOT\[extstring]
-                        rkey = Registry.ClassesRoot.OpenSubKey(extstring, true);
-
-                        if (rkey != null)
-                        {
-                            //Create HKEY_CLASS_ROOT\[extstring]\shell\[menuName]\command\
-                            string strkey = "shell\\" + menuName + "\\command";
-                            RegistryKey subky = rkey.CreateSubKey(strkey);
-
-                            if (subky != null)
-                            {
-                                //Set exePath value for (default)
-                                subky.SetValue("", exePath);
-                                subky.Close();
-
-
-                                //Open HKEY_CLASS_ROOT\[extstring]\shell\[menuName]
-                                subky = rkey.OpenSubKey("shell\\" + menuName, true);
-
-                                if (subky != null)
-                                {
-                                    //Set menuDescription for (default)
-                                    subky.SetValue("", menuDescription);
-
-                                    if (iconFile != "" && iconIndex != "")
-                                    {
-                                        //Set iconFile + ", " + iconIndex for Icon 
-                                        subky.SetValue("Icon", iconFile + ", " + iconIndex);
-                                    }
-                                    subky.Close();
-                                }
-
-                                ret = true;
-                            }
-
-                            rkey.Close();
-                        }
-                    }
-                }
-            }
-
-            return ret;
+            return 0;
         }
-
 
         /// <summary>
-        /// Xoá menu tuỳ chọn
+        /// Register URI Scheme for Web-to-App linking
         /// </summary>
-        /// <param name="extension">Phần mở rộng</param>
-        /// <param name="menuName">Tên menu</param>
         /// <returns></returns>
-        public static bool RemoveContextMenuItem(string extension, string menuName)
-        {
-            bool ret = false;
+        public static int SetURIScheme() {
+            DeleteURIScheme();
 
-            //Open HKEY_CLASS_ROOT\[extension]
-            RegistryKey rkey = Registry.ClassesRoot.OpenSubKey(extension);
+            var baseKey = $@"SOFTWARE\Classes\{Constants.URI_SCHEME}";
+            var reg = new RegistryHelper {
+                ShowError = true,
+                BaseRegistryKey = Registry.CurrentUser,
+                SubKey = baseKey
+            };
 
-            if (rkey != null)
-            {
-                //Get extension string
-                string extstring = rkey.GetValue("").ToString();
-                rkey.Close();
-
-                if (extstring != null)
-                {
-                    if (extstring.Length > 0)
-                    {
-                        //Open HKEY_CLASS_ROOT\[extstring]
-                        rkey = Registry.ClassesRoot.OpenSubKey(extstring, true);
-
-                        if (rkey != null)
-                        {
-                            //Open HKEY_CLASS_ROOT\[extstring]\shell\
-                            RegistryKey subky = rkey.OpenSubKey("shell\\", true);
-
-                            //Delete sub ket tree
-                            subky.DeleteSubKeyTree(menuName, false);
-
-                            //Close registry key HKEY_CLASS_ROOT\[extstring]\shell\
-                            subky.Close();
-
-                            ret = true;
-                        }
-
-                        //Close registry key HKEY_CLASS_ROOT\[extstring]
-                        rkey.Close();
-                    }
-                }
+            if (!reg.Write("", "URL: ImageGlass Protocol")) {
+                return 1;
             }
 
-            return ret;
+            if (!reg.Write("URL Protocol", "")) {
+                return 1;
+            }
+
+            // DefaultIcon
+            reg.SubKey = $@"{baseKey}\DefaultIcon";
+            if (!reg.Write("", $"\"{App.IGExePath}\", 0")) {
+                return 1;
+            }
+
+            // shell\open\command
+            reg.SubKey = $@"{baseKey}\shell\open\command";
+            if (!reg.Write("", $"\"{App.IGExePath}\" \"%1\"")) {
+                return 1;
+            }
+
+            return 0;
         }
-
-
-        #endregion
-
-
     }
 }

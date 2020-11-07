@@ -1,7 +1,7 @@
 ﻿/*
 ImageGlass Project - Image viewer for Windows
-Copyright (C) 2015 DUONG DIEU PHAP
-Project homepage: http://imageglass.org
+Copyright (C) 2020 DUONG DIEU PHAP
+Project homepage: https://imageglass.org
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,100 +14,199 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-using System;
-using System.Windows.Forms;
-using System.Diagnostics;
-using ImageGlass.Services.Configuration;
+using ImageGlass.Base;
 using ImageGlass.Services.InstanceManagement;
+using ImageGlass.Settings;
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Runtime;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
-namespace ImageGlass
-{
-    static class Program
-    {
+namespace ImageGlass {
+    internal static class Program {
+        private const string appGuid = "{f2a83de1-b9ac-4461-81d0-cc4547b0b27b}";
+        private static frmMain formMain;
+
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
+
+        // Issue #360: IG periodically searching for dismounted device
+        [DllImport("kernel32.dll")]
+        private static extern ErrorModes SetErrorMode(ErrorModes uMode);
+
+        [Flags]
+        public enum ErrorModes: uint {
+            SYSTEM_DEFAULT = 0x0,
+            SEM_FAILCRITICALERRORS = 0x0001,
+            SEM_NOGPFAULTERRORBOX = 1 << 1,
+            SEM_NOALIGNMENTFAULTEXCEPT = 1 << 2,
+            SEM_NOOPENFILEERRORBOX = 1 << 15
+        }
+
+        // Issues #774, #855 : using this method is the ONLY way to successfully restore from minimized state!
+        [DllImport("user32.dll")]
+        private static extern int ShowWindow(IntPtr hWnd, uint msg);
+
+        private const uint SW_RESTORE = 0x09;
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        private static string appGuid = "{f2a83de1-b9ac-4461-81d0-cc4547b0b27b}";
-        private static frmMain formMain;
-
         [STAThread]
-        static void Main(string[] argv)
-        {
-            Guid guid = new Guid(appGuid);
+        private static void Main() {
+            // Issue #360: IG periodically searching for dismounted device
+            // This _must_ be executed first!
+            SetErrorMode(ErrorModes.SEM_FAILCRITICALERRORS);
+
+            // Set up Startup Profile to improve launch performance
+            // https://blogs.msdn.microsoft.com/dotnet/2012/10/18/an-easy-solution-for-improving-app-launch-performance/
+            ProfileOptimization.SetProfileRoot(App.ConfigDir(PathType.Dir));
+            ProfileOptimization.StartProfile("igstartup.profile");
+
+            // Load user configs
+            Configs.Load();
+
+            SetProcessDPIAware();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            //auto update----------------------------------------------------------------
-            string s = GlobalSetting.GetConfig("AutoUpdate", "1/1/2015 0:0:0");
-            
-            if (s != "0")
-            {
-                DateTime lastUpdate = DateTime.Now;
 
-                if (DateTime.TryParse(s, out lastUpdate))
-                {
-                    //Check for update every 7 days
-                    if (DateTime.Now.Subtract(lastUpdate).TotalDays > 7)
-                    {
-                        Process p = new Process();
-                        p.StartInfo.FileName = GlobalSetting.StartUpDir + "igcmd.exe";
-                        p.StartInfo.Arguments = "igautoupdate";
+            #region Check config file compatibility
+            if (!Configs.IsCompatible) {
+                var msg = string.Format(Configs.Language.Items["_IncompatibleConfigs"], App.Version);
+                var result = MessageBox.Show(msg, Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes) {
+                    try {
+                        Process.Start($"https://imageglass.org/docs/app-configs?utm_source=app_{App.Version}&utm_medium=app_click&utm_campaign=incompatible_configs");
+                    }
+                    catch { }
+
+                    return;
+                }
+            }
+            #endregion
+
+
+            #region Check First-launch Configs
+            if (Configs.FirstLaunchVersion < Constants.FIRST_LAUNCH_VERSION) {
+                using (var p = new Process()) {
+                    p.StartInfo.FileName = App.StartUpDir("igcmd.exe");
+                    p.StartInfo.Arguments = "firstlaunch";
+
+                    try {
                         p.Start();
                     }
+                    catch { }
                 }
-            }            
 
-            //get current config
-            GlobalSetting.IsAllowMultiInstances = bool.Parse(GlobalSetting.GetConfig("IsAllowMultiInstances", "true"));
+                Application.Exit();
+                return;
+            }
+            #endregion
 
-            //check if allows multi instances
-            if (GlobalSetting.IsAllowMultiInstances)
-            {
+
+            #region Auto check for update
+            if (Configs.AutoUpdate != "0") {
+                var lastUpdate = DateTime.Now;
+
+                if (DateTime.TryParseExact(Configs.AutoUpdate, "M/d/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out lastUpdate)) {
+                    // Check for update every 3 days
+                    if (DateTime.Now.Subtract(lastUpdate).TotalDays > 3) {
+                        CheckForUpdate(useAutoCheck: true);
+                    }
+                }
+                else {
+                    CheckForUpdate(useAutoCheck: true);
+                }
+            }
+            #endregion
+
+
+            #region Multi instances
+            // check if allows multi instances
+            if (Configs.IsAllowMultiInstances) {
                 Application.Run(formMain = new frmMain());
             }
-            else
-            {
-                //single instance is required
-                using (SingleInstance singleInstance = new SingleInstance(guid))
-                {
-                    if (singleInstance.IsFirstInstance)
-                    {
-                        singleInstance.ArgumentsReceived += SingleInstance_ArgumentsReceived;
-                        singleInstance.ListenForArgumentsFromSuccessiveInstances();
+            else {
+                var guid = new Guid(appGuid);
 
-                        Application.Run(formMain = new frmMain());
-                    }
-                    else
-                    {
-                        singleInstance.PassArgumentsToFirstInstance(Environment.GetCommandLineArgs());
-                    }
+                // single instance is required
+                using var singleInstance = new SingleInstance(guid);
+                if (singleInstance.IsFirstInstance) {
+                    singleInstance.ArgumentsReceived += SingleInstance_ArgsReceived;
+                    singleInstance.ListenForArgumentsFromSuccessiveInstances();
+
+                    Application.Run(formMain = new frmMain());
+                }
+                else {
+                    _ = singleInstance.PassArgumentsToFirstInstance(Environment.GetCommandLineArgs());
                 }
             } //end check multi instances
+            #endregion
 
         }
 
-        private static void SingleInstance_ArgumentsReceived(object sender, ArgumentsReceivedEventArgs e)
-        {
+        private static void SingleInstance_ArgsReceived(object sender, ArgumentsReceivedEventArgs e) {
             if (formMain == null)
                 return;
 
-            Action<String[]> updateForm = arguments =>
-            {
-                formMain.WindowState = FormWindowState.Normal;
+            Action<string[]> UpdateForm = arguments => {
+
+                // Issues #774, #855 : if IG is normal or maximized, do nothing. If IG is minimized,
+                // restore it to previous state.
+                if (formMain.WindowState == FormWindowState.Minimized) {
+                    ShowWindow(formMain.Handle, SW_RESTORE);
+                }
+
                 formMain.LoadFromParams(arguments);
             };
 
-            //Execute our delegate on the forms thread!
-            formMain.Invoke(updateForm, (Object)e.Args); 
+            // KBR 20181009 Attempt to run a 2nd instance of IG when multi-instance turned off. Primary instance
+            // will crash if no file provided (e.g. by double-clicking on .EXE in explorer).
+            var realcount = 0;
+            foreach (var arg in e.Args) {
+                if (arg != null) {
+                    realcount++;
+                }
+            }
+
+            var realargs = new string[realcount];
+            Array.Copy(e.Args, realargs, realcount);
+
+            // Execute our delegate on the forms thread!
+            formMain.Invoke(UpdateForm, (object)realargs);
 
             // send our Win32 message to bring ImageGlass dialog to top
             NativeMethods.PostMessage((IntPtr)NativeMethods.HWND_BROADCAST, NativeMethods.WM_SHOWME, IntPtr.Zero, IntPtr.Zero);
         }
+
+        /// <summary>
+        /// Check for updatae
+        /// </summary>
+        /// <param name="useAutoCheck">If TRUE, use "igautoupdate"; else "igupdate" for argument</param>
+        public static void CheckForUpdate(bool useAutoCheck = false) {
+            _ = Task.Run(() => {
+                using var p = new Process();
+                p.StartInfo.FileName = App.StartUpDir("igcmd.exe");
+                p.StartInfo.Arguments = useAutoCheck ? "igautoupdate" : "igupdate";
+                p.Start();
+
+                p.WaitForExit();
+
+                // There is a newer version
+                Configs.IsNewVersionAvailable = p.ExitCode == 1;
+
+                // save last update
+                Configs.AutoUpdate = DateTime.Now.ToString("M/d/yyyy HH:mm:ss");
+            });
+        }
     }
-
-
 }

@@ -26,15 +26,13 @@ using System.Drawing.Imaging;
 using System.Windows.Media.Imaging;
 #endif
 
-namespace ImageGlass.ImageListView
-{
+namespace ImageGlass.ImageListView {
     /// <summary>
     /// Read metadata.
     /// Only EXIF data when using .NET 2.0 methods.
     /// Prioritized EXIF/XMP/ICC/etc. data when using WIC/WPF methods.
     /// </summary>
-    internal class MetadataExtractor
-    {
+    internal class MetadataExtractor {
         #region Exif Tag IDs
         private const int TagImageDescription = 0x010E;
         private const int TagEquipmentModel = 0x0110;
@@ -59,7 +57,7 @@ namespace ImageGlass.ImageListView
         private static readonly string[] WICPathComment = new string[] { "/app1/ifd/{ushort=40092}", "/app1/ifd/{ushort=37510}", "/xmp/<xmpalt>exif:UserComment" };
         private static readonly string[] WICPathSoftware = new string[] { "/app1/ifd/{ushort=305}", "/xmp/xmp:CreatorTool", "/xmp/xmp:creatortool", "/xmp/tiff:Software", "/xmp/tiff:software", "/app13/irb/8bimiptc/iptc/Originating Program" };
         private static readonly string[] WICPathSimpleRating = new string[] { "/app1/ifd/{ushort=18246}", "/xmp/xmp:Rating" };
-        private static readonly string[] WICPathRating = new string[] { "/app1/ifd/exif/{ushort=34855}", "/xmp/<xmpseq>exif:ISOSpeedRatings", "/xmp/exif:ISOSpeed" };
+        private static readonly string[] WICPathRating = new string[] { "/app1/ifd/{ushort=18249}", "/xmp/MicrosoftPhoto:Rating" };
         private static readonly string[] WICPathArtist = new string[] { "/app1/ifd/{ushort=315}", "/app13/irb/8bimiptc/iptc/by-line", "/app1/ifd/{ushort=40093}", "/xmp/tiff:artist" };
         private static readonly string[] WICPathEquipmentManufacturer = new string[] { "/app1/ifd/{ushort=271}", "/xmp/tiff:Make", "/xmp/tiff:make" };
         private static readonly string[] WICPathEquipmentModel = new string[] { "/app1/ifd/{ushort=272}", "/xmp/tiff:Model", "/xmp/tiff:model" };
@@ -76,8 +74,7 @@ namespace ImageGlass.ImageListView
         /// Converts the given Exif data to an ASCII encoded string.
         /// </summary>
         /// <param name="value">Exif data as a byte array.</param>
-        private static string ExifAscii(byte[] value)
-        {
+        private static string ExifAscii(byte[] value) {
             if (value == null || value.Length == 0)
                 return string.Empty;
 
@@ -89,8 +86,7 @@ namespace ImageGlass.ImageListView
         /// Converts the given Exif data to DateTime.
         /// </summary>
         /// <param name="value">Exif data as a byte array.</param>
-        private static DateTime ExifDateTime(byte[] value)
-        {
+        private static DateTime ExifDateTime(byte[] value) {
             return ExifDateTime(ExifAscii(value));
         }
         /// <summary>
@@ -98,16 +94,21 @@ namespace ImageGlass.ImageListView
         /// Value must be formatted as yyyy:MM:dd HH:mm:ss.
         /// </summary>
         /// <param name="value">Exif data as a string.</param>
-        private static DateTime ExifDateTime(string value)
-        {
-            try
-            {
-                return DateTime.ParseExact(value,
+        private static DateTime ExifDateTime(string value) {
+            try {
+                // Don't throw unnecessary FormatExceptions
+                DateTime dt;
+                var converted = DateTime.TryParseExact(value,
                     "yyyy:MM:dd HH:mm:ss",
-                    System.Globalization.CultureInfo.InvariantCulture);
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None,
+                    out dt);
+                return converted ? dt : DateTime.MinValue;
+                //return DateTime.ParseExact(value,
+                //    "yyyy:MM:dd HH:mm:ss",
+                //    System.Globalization.CultureInfo.InvariantCulture);
             }
-            catch
-            {
+            catch {
                 return DateTime.MinValue;
             }
         }
@@ -116,8 +117,7 @@ namespace ImageGlass.ImageListView
         /// The value must have 2 bytes.
         /// </summary>
         /// <param name="value">Exif data as a byte array.</param>
-        private static ushort ExifUShort(byte[] value)
-        {
+        private static ushort ExifUShort(byte[] value) {
             return BitConverter.ToUInt16(value, 0);
         }
         /// <summary>
@@ -125,8 +125,7 @@ namespace ImageGlass.ImageListView
         /// The value must have 4 bytes.
         /// </summary>
         /// <param name="value">Exif data as a byte array.</param>
-        private static uint ExifUInt(byte[] value)
-        {
+        private static uint ExifUInt(byte[] value) {
             return BitConverter.ToUInt32(value, 0);
         }
         /// <summary>
@@ -134,8 +133,7 @@ namespace ImageGlass.ImageListView
         /// The value must have 4 bytes.
         /// </summary>
         /// <param name="value">Exif data as a byte array.</param>
-        private static int ExifInt(byte[] value)
-        {
+        private static int ExifInt(byte[] value) {
             return BitConverter.ToInt32(value, 0);
         }
         /// <summary>
@@ -144,8 +142,7 @@ namespace ImageGlass.ImageListView
         /// The value must have 8 bytes.
         /// </summary>
         /// <param name="value">Exif data as a byte array.</param>
-        private static string ExifURational(byte[] value)
-        {
+        private static string ExifURational(byte[] value) {
             return BitConverter.ToUInt32(value, 0).ToString() + "/" +
                     BitConverter.ToUInt32(value, 4).ToString();
         }
@@ -155,8 +152,7 @@ namespace ImageGlass.ImageListView
         /// The value must have 8 bytes.
         /// </summary>
         /// <param name="value">Exif data as a byte array.</param>
-        private static string ExifRational(byte[] value)
-        {
+        private static string ExifRational(byte[] value) {
             return BitConverter.ToInt32(value, 0).ToString() + "/" +
                     BitConverter.ToInt32(value, 4).ToString();
         }
@@ -165,8 +161,7 @@ namespace ImageGlass.ImageListView
         /// The value must have 8 bytes.
         /// </summary>
         /// <param name="value">Exif data as a byte array.</param>
-        private static double ExifDouble(byte[] value)
-        {
+        private static double ExifDouble(byte[] value) {
             uint num = BitConverter.ToUInt32(value, 0);
             uint den = BitConverter.ToUInt32(value, 4);
             if (den == 0)
@@ -257,14 +252,11 @@ namespace ImageGlass.ImageListView
         /// If WIC lacks a metadata reader for this image type then fall back to .NET 2.0 method. 
         /// </summary>
         /// <param name="path">Filepath of image</param>
-        private void InitViaWpf(string path)
-        {
+        private void InitViaWpf(string path) {
             bool wicError = false;
 #if USEWIC
-            try
-            {
-                using (FileStream streamWpf = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
+            try {
+                using (FileStream streamWpf = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
                     BitmapFrame frameWpf = BitmapFrame.Create
                             (streamWpf,
                              BitmapCreateOptions.IgnoreColorProfile,
@@ -272,23 +264,19 @@ namespace ImageGlass.ImageListView
                     InitViaWpf(frameWpf);
                 }
             }
-            catch (Exception eWpf)
-            {
+            catch (Exception eWpf) {
                 Error = eWpf;
                 wicError = true;
             }
 #else
             wicError = true;
 #endif
-            if (wicError)
-            {
-                try
-                {
+            if (wicError) {
+                try {
                     // Fall back to .NET 2.0 method.
                     InitViaBmp(path);
                 }
-                catch (Exception eBmp)
-                {
+                catch (Exception eBmp) {
                     Error = eBmp;
                 }
             }
@@ -298,8 +286,7 @@ namespace ImageGlass.ImageListView
         /// Inits metadata via WIC/WPF (.NET 3.0).
         /// </summary>
         /// <param name="frameWpf">Opened WPF image</param>
-        private void InitViaWpf(BitmapFrame frameWpf)
-        {
+        private void InitViaWpf(BitmapFrame frameWpf) {
             Width = frameWpf.PixelWidth;
             Height = frameWpf.PixelHeight;
             DPIX = frameWpf.DpiX;
@@ -314,16 +301,11 @@ namespace ImageGlass.ImageListView
         /// Open image and read metadata (.NET 2.0).
         /// </summary>
         /// <param name="path">Filepath of image</param>
-        private void InitViaBmp(string path)
-        {
-            using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                if (Utility.IsImage(stream))
-                {
-                    using (Image img = Image.FromStream(stream, false, false))
-                    {
-                        if (img != null)
-                        {
+        private void InitViaBmp(string path) {
+            using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                if (Utility.IsImage(stream)) {
+                    using (Image img = Image.FromStream(stream, false, false)) {
+                        if (img != null) {
                             InitViaBmp(img);
                         }
                     }
@@ -334,8 +316,7 @@ namespace ImageGlass.ImageListView
         /// Read metadata using .NET 2.0 methods.
         /// </summary>
         /// <param name="img">Opened image</param>
-        private void InitViaBmp(Image img)
-        {
+        private void InitViaBmp(Image img) {
             Width = img.Width;
             Height = img.Height;
             DPIX = img.HorizontalResolution;
@@ -345,87 +326,71 @@ namespace ImageGlass.ImageListView
             int iVal;
             DateTime dateTime;
             string str;
-            foreach (PropertyItem prop in img.PropertyItems)
-            {
-                if (prop.Value != null && prop.Value.Length != 0)
-                {
-                    switch (prop.Id)
-                    {
+            foreach (PropertyItem prop in img.PropertyItems) {
+                if (prop.Value != null && prop.Value.Length != 0) {
+                    switch (prop.Id) {
                         case TagImageDescription:
                             str = ExifAscii(prop.Value).Trim();
-                            if (str != String.Empty)
-                            {
+                            if (str != String.Empty) {
                                 ImageDescription = str;
                             }
                             break;
                         case TagArtist:
                             str = ExifAscii(prop.Value).Trim();
-                            if (str != String.Empty)
-                            {
+                            if (str != String.Empty) {
                                 Artist = str;
                             }
                             break;
                         case TagEquipmentManufacturer:
                             str = ExifAscii(prop.Value).Trim();
-                            if (str != String.Empty)
-                            {
+                            if (str != String.Empty) {
                                 EquipmentManufacturer = str;
                             }
                             break;
                         case TagEquipmentModel:
                             str = ExifAscii(prop.Value).Trim();
-                            if (str != String.Empty)
-                            {
+                            if (str != String.Empty) {
                                 EquipmentModel = str;
                             }
                             break;
                         case TagDateTimeOriginal:
                             dateTime = ExifDateTime(prop.Value);
-                            if (dateTime != DateTime.MinValue)
-                            {
+                            if (dateTime != DateTime.MinValue) {
                                 DateTaken = dateTime;
                             }
                             break;
                         case TagExposureTime:
-                            if (prop.Value.Length == 8)
-                            {
+                            if (prop.Value.Length == 8) {
                                 dVal = ExifDouble(prop.Value);
-                                if (dVal != 0.0)
-                                {
+                                if (dVal != 0.0) {
                                     ExposureTime = dVal;
                                 }
                             }
                             break;
                         case TagFNumber:
-                            if (prop.Value.Length == 8)
-                            {
+                            if (prop.Value.Length == 8) {
                                 dVal = ExifDouble(prop.Value);
-                                if (dVal != 0.0)
-                                {
+                                if (dVal != 0.0) {
                                     FNumber = dVal;
                                 }
                             }
                             break;
                         case TagISOSpeed:
-                            if (prop.Value.Length == 2)
-                            {
+                            if (prop.Value.Length == 2) {
                                 iVal = ExifUShort(prop.Value);
-                                if (iVal != 0)
-                                {
+                                if (iVal != 0) {
                                     ISOSpeed = iVal;
                                 }
                             }
                             break;
                         case TagCopyright:
                             str = ExifAscii(prop.Value);
-                            if (str != String.Empty)
-                            {
+                            if (str != String.Empty) {
                                 Copyright = str;
                             }
                             break;
                         case TagRating:
-                            if (Rating == 0 && prop.Value.Length == 2)
-                            {
+                            if (Rating == 0 && prop.Value.Length == 2) {
                                 iVal = ExifUShort(prop.Value);
                                 if (iVal == 1)
                                     Rating = 1;
@@ -440,32 +405,27 @@ namespace ImageGlass.ImageListView
                             }
                             break;
                         case TagRatingPercent:
-                            if (prop.Value.Length == 2)
-                            {
+                            if (prop.Value.Length == 2) {
                                 iVal = ExifUShort(prop.Value);
                                 Rating = iVal;
                             }
                             break;
                         case TagUserComment:
                             str = ExifAscii(prop.Value);
-                            if (str != String.Empty)
-                            {
+                            if (str != String.Empty) {
                                 Comment = str;
                             }
                             break;
                         case TagSoftware:
                             str = ExifAscii(prop.Value).Trim();
-                            if (str != String.Empty)
-                            {
+                            if (str != String.Empty) {
                                 Software = str;
                             }
                             break;
                         case TagFocalLength:
-                            if (prop.Value.Length == 8)
-                            {
+                            if (prop.Value.Length == 8) {
                                 dVal = ExifDouble(prop.Value);
-                                if (dVal != 0.0)
-                                {
+                                if (dVal != 0.0) {
                                     FocalLength = dVal;
                                 }
                             }
@@ -480,8 +440,7 @@ namespace ImageGlass.ImageListView
         /// Read metadata via WIC/WPF.
         /// </summary>
         /// <param name="data">metadata</param>
-        private void InitViaWpf(BitmapMetadata data)
-        {
+        private void InitViaWpf(BitmapMetadata data) {
             Object val;
 
             // Subject
@@ -502,9 +461,9 @@ namespace ImageGlass.ImageListView
                 Software = val as string;
             // Simple rating
             val = GetMetadataObject(data, WICPathSimpleRating);
-            if (val != null)
-            {
-                ushort simpleRating = (ushort)val;
+            if (val != null) {
+                //ushort simpleRating = (ushort)val;
+                ushort simpleRating = Convert.ToUInt16(val);
 
                 if (simpleRating == 1)
                     Rating = 1;
@@ -519,20 +478,23 @@ namespace ImageGlass.ImageListView
             }
             // Rating
             val = GetMetadataObject(data, WICPathRating);
-            if (val != null)
-                Rating = (int)((ushort)val);
+            if (val != null) {
+                var a = val as Array;
+                if (a != null)
+                    Rating = Convert.ToInt32(a.GetValue(0));
+                else
+                    Rating = Convert.ToInt32(val);
+                //Rating = (int)((ushort)val);
+            }
             // Authors
             val = GetMetadataObject(data, WICPathArtist);
-            if (val != null)
-            {
+            if (val != null) {
                 if (val is string)
                     Artist = (string)val;
-                else if (val is System.Collections.Generic.IEnumerable<string>)
-                {
+                else if (val is System.Collections.Generic.IEnumerable<string>) {
                     int i = 0;
                     StringBuilder authors = new StringBuilder();
-                    foreach (string author in (System.Collections.Generic.IEnumerable<string>)val)
-                    {
+                    foreach (string author in (System.Collections.Generic.IEnumerable<string>)val) {
                         if (i != 0)
                             authors.Append(";");
                         authors.Append(authors);
@@ -565,8 +527,13 @@ namespace ImageGlass.ImageListView
                 FNumber = ExifDouble(BitConverter.GetBytes((ulong)val));
             // ISOSpeed
             val = GetMetadataObject(data, WICPathISOSpeed);
-            if (val != null)
-                ISOSpeed = (ushort)val;
+            if (val != null) {
+                var a = val as Array;
+                if (a != null)
+                    ISOSpeed = Convert.ToUInt16(a.GetValue(0));
+                else
+                    ISOSpeed = Convert.ToUInt16(val);
+            }
             // FocalLength
             val = GetMetadataObject(data, WICPathFocalLength);
             if (val != null)
@@ -578,19 +545,15 @@ namespace ImageGlass.ImageListView
         /// <param name="metadata">The image metadata.</param>
         /// <param name="query">A list of query strings.</param>
         /// <returns>Metadata object or null if the metadata is not found.</returns>
-        private object GetMetadataObject(BitmapMetadata metadata, params string[] query)
-        {
-            try
-            {
-                foreach (string q in query)
-                {
+        private object GetMetadataObject(BitmapMetadata metadata, params string[] query) {
+            try {
+                foreach (string q in query) {
                     object val = metadata.GetQuery(q);
                     if (val != null)
                         return val;
                 }
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 return null;
             }
             return null;
@@ -601,8 +564,7 @@ namespace ImageGlass.ImageListView
         /// </summary>
         /// <param name="ft">FileTime</param>
         /// <returns>DateTime</returns>
-        private DateTime ConvertFileTime(System.Runtime.InteropServices.ComTypes.FILETIME ft)
-        {
+        private DateTime ConvertFileTime(System.Runtime.InteropServices.ComTypes.FILETIME ft) {
             long longTime = (((long)ft.dwHighDateTime) << 32) | ((uint)ft.dwLowDateTime);
             return DateTime.FromFileTimeUtc(longTime); // using UTC???
         }
@@ -612,8 +574,7 @@ namespace ImageGlass.ImageListView
         /// <summary>
         /// Initializes a new instance of the MetadataExtractor class.
         /// </summary>
-        private MetadataExtractor()
-        {
+        private MetadataExtractor() {
             ;
         }
         #endregion
@@ -625,8 +586,7 @@ namespace ImageGlass.ImageListView
         /// If WIC lacks a metadata reader for this image type then fall back to .NET 2.0 method. 
         /// </summary>
         /// <param name="path">Filepath of image</param>
-        public static MetadataExtractor FromFile(string path)
-        {
+        public static MetadataExtractor FromFile(string path) {
             return MetadataExtractor.FromFile(path, true);
         }
         /// <summary>
@@ -636,8 +596,7 @@ namespace ImageGlass.ImageListView
         /// </summary>
         /// <param name="path">Filepath of image</param>
         /// <param name="useWic">true to use Windows Imaging Component; otherwise false.</param>
-        public static MetadataExtractor FromFile(string path, bool useWic)
-        {
+        public static MetadataExtractor FromFile(string path, bool useWic) {
             MetadataExtractor metadata = new MetadataExtractor();
 #if USEWIC
             if (useWic)
@@ -656,8 +615,7 @@ namespace ImageGlass.ImageListView
         /// If WIC lacks a metadata reader for this image type then fall back to .NET 2.0 method. 
         /// </summary>
         /// <param name="frameWpf">Opened WPF image</param>
-        public static MetadataExtractor FromBitmap(BitmapFrame frameWpf)
-        {
+        public static MetadataExtractor FromBitmap(BitmapFrame frameWpf) {
             MetadataExtractor metadata = new MetadataExtractor();
             metadata.InitViaWpf(frameWpf);
             return metadata;

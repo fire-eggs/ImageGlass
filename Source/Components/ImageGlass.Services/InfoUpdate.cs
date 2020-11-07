@@ -1,6 +1,6 @@
 ﻿/*
 ImageGlass Project - Image viewer for Windows
-Copyright (C) 2013 DUONG DIEU PHAP
+Copyright (C) 2020 DUONG DIEU PHAP
 Project homepage: http://imageglass.org
 
 This program is free software: you can redistribute it and/or modify
@@ -18,84 +18,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace ImageGlass.Services
-{
-
-
-    public class InfoUpdate
-    {
-        private Version _newVersion;
-        private string _versionType;
-        private string _level;
-        private Uri _link;
-        private string _size;
-        private DateTime _pubDate;
-        private string _decription;
-
+namespace ImageGlass.Services {
+    public class InfoUpdate {
         #region Properties
-        public Version NewVersion
-        {
-            get { return _newVersion; }
-            set { _newVersion = value; }
-        }        
+        public Version NewVersion { get; set; }
 
-        public string VersionType
-        {
-            get { return _versionType; }
-            set { _versionType = value; }
-        }        
+        public string VersionType { get; set; }
 
-        public string Level
-        {
-            get { return _level; }
-            set { _level = value; }
-        }        
+        public string Level { get; set; }
 
-        public Uri Link
-        {
-            get { return _link; }
-            set { _link = value; }
-        }        
+        public Uri Link { get; set; }
 
-        public string Size
-        {
-            get { return _size; }
-            set { _size = value; }
-        }
+        public string Size { get; set; }
 
         /// <summary>
         /// Get, set publish date
         /// </summary>
-        public DateTime PublishDate
-        {
-            get { return _pubDate; }
-            set { _pubDate = value; }
-        }
+        public DateTime PublishDate { get; set; }
 
-        public string Decription
-        {
-            get { return _decription; }
-            set { _decription = value; }
-        }
+        public string Description { get; set; }
         #endregion
 
         /// <summary>
         /// Provides information of element 'Info> in 'Update>
         /// </summary>
-        public InfoUpdate()
-        {
-            _newVersion = new System.Version("1.0.0.0");
-            _versionType = "Stable";
-            _level = "Recommended";
-            _link = new Uri("http://imageglass.org");
-            _size = "0 MB";
-            _pubDate = DateTime.Now;
-            _decription = string.Empty;           
+        public InfoUpdate() {
+            NewVersion = new System.Version("1.0.0.0");
+            VersionType = "Stable";
+            Level = "Recommended";
+            Link = new Uri("https://imageglass.org");
+            Size = "0 MB";
+            PublishDate = DateTime.Now;
+            Description = string.Empty;
         }
-
     }
 }

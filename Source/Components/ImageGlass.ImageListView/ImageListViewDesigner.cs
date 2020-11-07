@@ -16,21 +16,17 @@
 // Ozgur Ozcitak (ozcitak@yahoo.com)
 
 using System;
-using System.Windows.Forms;
 using System.ComponentModel;
-using System.Drawing.Design;
 using System.ComponentModel.Design;
+using System.Drawing.Design;
+using System.Windows.Forms;
 using System.Windows.Forms.Design;
-using System.Drawing;
-using System.Windows.Forms.Design.Behavior;
 
-namespace ImageGlass.ImageListView
-{
+namespace ImageGlass.ImageListView {
     /// <summary>
     /// Represents the designer of the image list view.
     /// </summary>
-    internal class ImageListViewDesigner : ControlDesigner
-    {
+    internal class ImageListViewDesigner: ControlDesigner {
         #region Member Variables
         private DesignerActionListCollection actionLists = null;
         #endregion
@@ -39,14 +35,11 @@ namespace ImageGlass.ImageListView
         /// <summary>
         /// Gets the design-time action lists supported by the component associated with the designer.
         /// </summary>
-        public override DesignerActionListCollection ActionLists
-        {
-            get
-            {
-                if (actionLists == null)
-                {
+        public override DesignerActionListCollection ActionLists {
+            get {
+                if (actionLists == null) {
                     actionLists = base.ActionLists;
-                    actionLists.Add(new ImageListViewActionLists(this.Component));
+                    actionLists.Add(new ImageListViewActionLists(Component));
                 }
                 return actionLists;
             }
@@ -57,8 +50,7 @@ namespace ImageGlass.ImageListView
     /// <summary>
     /// Defines smart tag entries for the image list view.
     /// </summary>
-    internal class ImageListViewActionLists : DesignerActionList, IServiceProvider, IWindowsFormsEditorService, ITypeDescriptorContext
-    {
+    internal class ImageListViewActionLists: DesignerActionList, IServiceProvider, IWindowsFormsEditorService, ITypeDescriptorContext {
         #region Member Variables
         private ImageListView imageListView;
         private DesignerActionUIService designerService;
@@ -73,8 +65,7 @@ namespace ImageGlass.ImageListView
         /// </summary>
         /// <param name="component">A component related to the DesignerActionList.</param>
         public ImageListViewActionLists(IComponent component)
-            : base(component)
-        {
+            : base(component) {
             imageListView = (ImageListView)component;
 
             designerService = (DesignerActionUIService)GetService(typeof(DesignerActionUIService));
@@ -86,8 +77,7 @@ namespace ImageGlass.ImageListView
         /// Helper method to retrieve control properties for undo support.
         /// </summary>
         /// <param name="propName">Property name.</param>
-        private PropertyDescriptor GetPropertyByName(String propName)
-        {
+        private PropertyDescriptor GetPropertyByName(String propName) {
             PropertyDescriptor prop;
             prop = TypeDescriptor.GetProperties(imageListView)[propName];
             if (prop == null)
@@ -101,24 +91,21 @@ namespace ImageGlass.ImageListView
         /// <summary>
         /// Gets or sets the sort column of the designed ImageListView.
         /// </summary>
-        public int SortColumn
-        {
+        public int SortColumn {
             get { return imageListView.SortColumn; }
             set { GetPropertyByName("SortColumn").SetValue(imageListView, value); }
         }
         /// <summary>
         /// Gets or sets the sort oerder of the designed ImageListView.
         /// </summary>
-        public SortOrder SortOrder
-        {
+        public SortOrder SortOrder {
             get { return imageListView.SortOrder; }
             set { GetPropertyByName("SortOrder").SetValue(imageListView, value); }
         }
         /// <summary>
         /// Gets or sets the view mode of the designed ImageListView.
         /// </summary>
-        public View View
-        {
+        public View View {
             get { return imageListView.View; }
             set { GetPropertyByName("View").SetValue(imageListView, value); }
         }
@@ -128,8 +115,7 @@ namespace ImageGlass.ImageListView
         /// <summary>
         /// Invokes the editor for the columns of the designed ImageListView.
         /// </summary>
-        public void EditColumns()
-        {
+        public void EditColumns() {
             // IComponentChangeService is used to pass change notifications to the designer
             IComponentChangeService ccs = (IComponentChangeService)GetService(typeof(IComponentChangeService));
 
@@ -155,8 +141,7 @@ namespace ImageGlass.ImageListView
         /// <summary>
         /// Invokes the editor for the items of the designed ImageListView.
         /// </summary>
-        public void EditItems()
-        {
+        public void EditItems() {
             // IComponentChangeService is used to pass change notifications to the designer
             IComponentChangeService ccs = (IComponentChangeService)GetService(typeof(IComponentChangeService));
 
@@ -185,8 +170,7 @@ namespace ImageGlass.ImageListView
         /// <summary>
         /// Returns the collection of <see cref="T:System.ComponentModel.Design.DesignerActionItem"/> objects contained in the list.
         /// </summary>
-        public override DesignerActionItemCollection GetSortedActionItems()
-        {
+        public override DesignerActionItemCollection GetSortedActionItems() {
             DesignerActionItemCollection items = new DesignerActionItemCollection();
 
             items.Add(new DesignerActionMethodItem(this, "EditItems", "Edit Items", true));
@@ -205,10 +189,8 @@ namespace ImageGlass.ImageListView
         /// Returns an object that represents a service provided by the component 
         /// associated with the <see cref="T:System.ComponentModel.Design.DesignerActionList"/>.
         /// </summary>
-        object IServiceProvider.GetService(Type serviceType)
-        {
-            if (serviceType.Equals(typeof(IWindowsFormsEditorService)))
-            {
+        object IServiceProvider.GetService(Type serviceType) {
+            if (serviceType.Equals(typeof(IWindowsFormsEditorService))) {
                 return this;
             }
             return GetService(serviceType);
@@ -219,23 +201,20 @@ namespace ImageGlass.ImageListView
         /// <summary>
         /// Closes any previously opened drop down control area.
         /// </summary>
-        void IWindowsFormsEditorService.CloseDropDown()
-        {
+        void IWindowsFormsEditorService.CloseDropDown() {
             throw new NotSupportedException("Only modal dialogs are supported.");
         }
         /// <summary>
         /// Displays the specified control in a drop down area below a value 
         /// field of the property grid that provides this service.
         /// </summary>
-        void IWindowsFormsEditorService.DropDownControl(Control control)
-        {
+        void IWindowsFormsEditorService.DropDownControl(Control control) {
             throw new NotSupportedException("Only modal dialogs are supported.");
         }
         /// <summary>
         /// Shows the specified <see cref="T:System.Windows.Forms.Form"/>.
         /// </summary>
-        DialogResult IWindowsFormsEditorService.ShowDialog(Form dialog)
-        {
+        DialogResult IWindowsFormsEditorService.ShowDialog(Form dialog) {
             return (dialog.ShowDialog());
         }
         #endregion
@@ -245,37 +224,32 @@ namespace ImageGlass.ImageListView
         /// Gets the container representing this 
         /// <see cref="T:System.ComponentModel.TypeDescriptor"/> request.
         /// </summary>
-        IContainer ITypeDescriptorContext.Container
-        {
+        IContainer ITypeDescriptorContext.Container {
             get { return null; }
         }
         /// <summary>
         /// Gets the object that is connected with this type descriptor request.
         /// </summary>
-        object ITypeDescriptorContext.Instance
-        {
+        object ITypeDescriptorContext.Instance {
             get { return imageListView; }
         }
         /// <summary>
         /// Raises the <see cref="E:System.ComponentModel.Design.IComponentChangeService.ComponentChanged"/> event.
         /// </summary>
-        void ITypeDescriptorContext.OnComponentChanged()
-        {
+        void ITypeDescriptorContext.OnComponentChanged() {
             ;
         }
         /// <summary>
         /// Raises the <see cref="E:System.ComponentModel.Design.IComponentChangeService.ComponentChanging"/> event.
         /// </summary>
-        bool ITypeDescriptorContext.OnComponentChanging()
-        {
+        bool ITypeDescriptorContext.OnComponentChanging() {
             return true;
         }
         /// <summary>
         /// Gets the <see cref="T:System.ComponentModel.PropertyDescriptor"/> 
         /// that is associated with the given context item.
         /// </summary>
-        PropertyDescriptor ITypeDescriptorContext.PropertyDescriptor
-        {
+        PropertyDescriptor ITypeDescriptorContext.PropertyDescriptor {
             get { return columnProperty; }
         }
         #endregion

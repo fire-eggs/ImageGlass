@@ -20,25 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // (c) Vasian Cepa 2005
 // Version 2
 
-using System;
 using System.Collections; // required for NumericComparer : IComparer only
 
-namespace ImageGlass.Library.Comparer
-{
+namespace ImageGlass.Library.Comparer {
+    public class NumericComparer: IComparer {
+        public NumericComparer() { }
 
-    public class NumericComparer : IComparer
-    {
-        public NumericComparer()
-        { }
-
-        public int Compare(object x, object y)
-        {
-            if ((x is string) && (y is string))
-            {
-                return StringLogicalComparer.Compare((string)x, (string)y);
+        public int Compare(object x, object y) {
+            if ((x is string @string) && (y is string string1)) {
+                return StringLogicalComparer.Compare(@string, string1);
             }
             return -1;
         }
     }//EOC
-
 }

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,13 +10,15 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>igcmd</RootNamespace>
     <AssemblyName>igcmd</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -29,10 +31,10 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,6 +44,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -50,9 +54,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>igtheme.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
@@ -63,20 +70,62 @@
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>false</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>8.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>8.0</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ionic.Zip, Version=1.9.8.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\DotNetZip.1.9.8\lib\net20\Ionic.Zip.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="DotNetZip, Version=1.14.0.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\DotNetZip.1.14.0\lib\net40\DotNetZip.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -87,53 +136,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="frmFollow.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmFollow.Designer.cs">
-      <DependentUpon>frmFollow.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmInstallTheme.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmInstallTheme.Designer.cs">
-      <DependentUpon>frmInstallTheme.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmCheckForUpdate.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>frmCheckForUpdate.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmReview.cs">
+    <Compile Include="frmFirstLaunch.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmReview.Designer.cs">
-      <DependentUpon>frmReview.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmUpload.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmUpload.Designer.cs">
-      <DependentUpon>frmUpload.cs</DependentUpon>
+    <Compile Include="frmFirstLaunch.Designer.cs">
+      <DependentUpon>frmFirstLaunch.cs</DependentUpon>
     </Compile>
     <Compile Include="Core.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="frmCheckForUpdate.resx">
       <DependentUpon>frmCheckForUpdate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmFollow.resx">
-      <DependentUpon>frmFollow.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmInstallTheme.resx">
-      <DependentUpon>frmInstallTheme.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmReview.resx">
-      <DependentUpon>frmReview.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmUpload.resx">
-      <DependentUpon>frmUpload.cs</DependentUpon>
+    <EmbeddedResource Include="frmFirstLaunch.resx">
+      <DependentUpon>frmFirstLaunch.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -146,7 +169,9 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.config" />
+    <None Include="app.manifest" />
     <None Include="packages.config" />
+    <None Include="Properties\app.manifest" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\_del_2.png" />
@@ -183,24 +208,49 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="form_igtheme.ico" />
-    <Content Include="igtheme.ico" />
     <None Include="Resources\warning.png" />
     <None Include="Resources\recommend.png" />
     <None Include="Resources\ok.png" />
     <None Include="Resources\loading.gif" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Components\ImageGlass.Base\ImageGlass.Base.csproj">
+      <Project>{6cc96a70-6773-41b5-9fca-4f0ab6fad8ca}</Project>
+      <Name>ImageGlass.Base</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Components\ImageGlass.Library\ImageGlass.Library.csproj">
+      <Project>{4bb719ed-b68b-4cb1-aaaf-ba0e3bc5fe81}</Project>
+      <Name>ImageGlass.Library</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Components\ImageGlass.Services\ImageGlass.Services.csproj">
       <Project>{886dc568-c83e-443e-89fa-84cf420b2c68}</Project>
       <Name>ImageGlass.Services</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Components\ImageGlass.Theme\ImageGlass.Theme.csproj">
+    <ProjectReference Include="..\..\Components\ImageGlass.Settings\ImageGlass.Settings.csproj">
+      <Project>{4bad780f-8071-4034-9020-ecc9f4352422}</Project>
+      <Name>ImageGlass.Settings</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Components\ImageGlass.UI\ImageGlass.UI.csproj">
       <Project>{76486f88-aa16-4d7d-bbf6-0f1c604d5853}</Project>
-      <Name>ImageGlass.Theme</Name>
+      <Name>ImageGlass.UI</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\analyzers\cs\Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\analyzers\cs\Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll" />
+    <Analyzer Include="..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\analyzers\cs\Microsoft.VisualStudio.Threading.Analyzers.dll" />
+    <Analyzer Include="..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\analyzers\vb\Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\analyzers\vb\Microsoft.VisualStudio.Threading.Analyzers.dll" />
+    <Analyzer Include="..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\analyzers\vb\Microsoft.VisualStudio.Threading.Analyzers.VisualBasic.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\build\Microsoft.VisualStudio.Threading.Analyzers.targets" Condition="Exists('..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\build\Microsoft.VisualStudio.Threading.Analyzers.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\build\Microsoft.VisualStudio.Threading.Analyzers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.8.51\build\Microsoft.VisualStudio.Threading.Analyzers.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -10,10 +10,10 @@
 
 [Dd]ebug/
 [Rr]elease/
-x64/
 build/
 [Bb]in/
 [Oo]bj/
+[Rr]elease_x86/
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
@@ -153,5 +153,19 @@ Desktop.ini
 $RECYCLE.BIN/
 
 # Mac desktop service store files
-.DS_Store
 *.cache
+*.ide
+*.ide-shm
+*.ide-wal
+*.lock
+*.sqlite
+.DS_Store
+.vs/VSWorkspaceState.json
+/Source/.vs/ImageGlass/v15/Server/sqlite3
+Setup/*.zip
+Setup/AdvancedInstaller/x86/ImageGlass-x86-cache
+Setup/AdvancedInstaller/x64/ImageGlass-x64-cache
+Source/.vs/ImageGlass.sqlite
+Source/ImageGlass/obj/Debug/DesignTimeResolveAssemblyReferences.cache
+
+/.vs/ProjectSettings.json

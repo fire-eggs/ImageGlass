@@ -1,16 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Forms;
-using igtasks;
-using ImageGlass.Library;
-using ImageGlass.Library.Image;
-using ImageGlass.Library.FileAssociations;
+﻿/*
+ImageGlass Project - Image viewer for Windows
+Copyright (C) 2020 DUONG DIEU PHAP
+Project homepage: https://imageglass.org
 
-namespace adtasks
-{
-    static class Program
-    {
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+using igtasks;
+using ImageGlass.Library.Image;
+using ImageGlass.Settings;
+using System;
+using System.Windows.Forms;
+
+namespace adtasks {
+    internal static class Program {
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -20,171 +36,96 @@ namespace adtasks
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] argv)
-        {
+        private static int Main(string[] argv) {
+            // Windows Vista or later
+            if (Environment.OSVersion.Version.Major >= 6)
+                SetProcessDPIAware();
+
             args = argv;
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            //Command
-            string topcmd = args[0].ToLower().Trim();
+            // Load user configs
+            Configs.Load();
 
+            // Command
+            var topcmd = args[0].ToLower().Trim();
 
-            //Add menu 'Open with ImageGlass'
-            #region addext <string igPath> [string ext]
-            if (topcmd == "addext")
-            {
-                //Get executable file path
-                string exePath = args[1];
-
-                if (args.Length > 2)
-                {
-                    //Get extension
-                    string ext = args[2];
-
-                    //Apply changes
-                    Functions.AddImageGlassToContextMenu(exePath, ext);
-                }
-                else
-                {
-                    //Apply changes
-                    Functions.AddImageGlassToContextMenu(exePath);
-                }
-
-                Application.Exit();
-            }
-            #endregion
-
-            //Remove menu 'Open with ImageGlass'
-            #region removeext
-            else if (topcmd == "removeext")
-            {
-                //Apply changes
-                Functions.RemoveImageGlassToContextMenu();
-
-                Application.Exit();
-            }
-            #endregion
-
-            //Update extension for Menu
-            #region updateext <string exePath> <string exts>
-            else if (topcmd == "updateext")
-            {
-                //Remove all
-                Functions.RemoveImageGlassToContextMenu();
-
-                //Add new
-                if (args.Length > 2)
-                {
-                    //Get executable file path
-                    string exePath = args[1];
-
-                    //Get extension
-                    string ext = args[2];
-
-                    //Apply changes
-                    Functions.AddImageGlassToContextMenu(exePath, ext);
-                }
-
-                Application.Exit();
-            }
-            #endregion
-
-            //Set desktop wallpaper
+            // Set desktop wallpaper
             #region setwallpaper <string imgPath> [int style]
-            else if (topcmd == "setwallpaper")
-            {
+            if (topcmd == "setwallpaper") {
                 //Get image's path
-                string imgPath = args[1];
+                var imgPath = args[1];
+                var style = DesktopWallapaper.Style.Current;
 
-                if (args.Length > 2)
-                {
+                if (args.Length > 2) {
                     //Get style
-                    string style = args[2];
-
-                    //Apply changes
-                    if (style == "1")
-                    {
-                        DesktopWallapaper.Set(new Uri(imgPath), DesktopWallapaper.Style.Stretched);
-                    }
-                    else if (style == "2")
-                    {
-                        DesktopWallapaper.Set(new Uri(imgPath), DesktopWallapaper.Style.Tiled);
-                    }
-                    else //style == "0"
-                    {
-                        DesktopWallapaper.Set(new Uri(imgPath), DesktopWallapaper.Style.Centered);
-                    }
-                }
-                else
-                {
-                    //Apply changes
-                    DesktopWallapaper.Set(new Uri(imgPath), DesktopWallapaper.Style.Centered);
+                    Enum.TryParse(args[2], out style);
                 }
 
-                Application.Exit();
+                //Apply changes and return exit code
+                return (int)DesktopWallapaper.Set(imgPath, style);
             }
             #endregion
 
-            //Register file association
-            #region regassociations <string appPath> <string exts>
-            else if (topcmd == "regassociations")
-            {
-                //get Executable file
-                string appPath = args[1];
-                //get Extension
-                string exts = args[2];
+            // Register file associations
+            #region regassociations <string exts>
+            else if (topcmd == "regassociations") {
+                //get Extensions
+                var exts = args[1];
 
-                Functions.RegisterAssociation(appPath, exts);
-
-                Application.Exit();
+                return Functions.SetRegistryAssociations(exts);
             }
             #endregion
 
-            //Install new language packs
+            // Delete all file associations
+            #region delassociations
+            else if (topcmd == "delassociations") {
+                var formats = Configs.GetImageFormats(Configs.AllFormats);
+                return Functions.DeleteRegistryAssociations(formats, true);
+            }
+            #endregion
+
+            // Install new language packs
             #region iginstalllang
-            else if (topcmd == "iginstalllang")
-            {
+            else if (topcmd == "iginstalllang") {
                 Functions.InstallLanguagePacks();
-                Application.Exit();
             }
             #endregion
 
-            //Create new language packs
+            // Create new language packs
             #region ignewlang
-            else if (topcmd == "ignewlang")
-            {
+            else if (topcmd == "ignewlang") {
                 Functions.CreateNewLanguagePacks();
-                Application.Exit();
             }
             #endregion
 
-            //Edit language packs
+            // Edit language packs
             #region igeditlang <string filename>
-            else if (topcmd == "igeditlang")
-            {
+            else if (topcmd == "igeditlang") {
                 //get Executable file
-                string filename = args[1];
+                var filename = args[1];
 
                 Functions.EditLanguagePacks(filename);
-                Application.Exit();
             }
             #endregion
 
-            //Install new extensions
-            #region iginstallext
-            else if (topcmd == "iginstallext")
-            {
-                Functions.InstallExtensions();
-                Application.Exit();
+            // Register URI Scheme for Web-to-App linking
+            #region reg-uri-scheme
+            else if (topcmd == "reg-uri-scheme") {
+                return Functions.SetURIScheme();
             }
             #endregion
 
+            // Delete URI Scheme registry
+            #region del-uri-scheme
+            else if (topcmd == "del-uri-scheme") {
+                return Functions.DeleteURIScheme();
+            }
+            #endregion
 
+            return 0;
         }
-
-
-
     }
 }

@@ -1,7 +1,7 @@
 ﻿/*
 ImageGlass Project - Image viewer for Windows
-Copyright (C) 2013 DUONG DIEU PHAP
-Project homepage: http://imageglass.org
+Copyright (C) 2020 DUONG DIEU PHAP
+Project homepage: https://imageglass.org
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,205 +14,166 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using ImageGlass.Base;
+using ImageGlass.Settings;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Drawing;
-using System.Text;
 using System.Diagnostics;
-using System.Windows.Forms;
+using System.Drawing;
 using System.IO;
-using ImageGlass.Services.Configuration;
+using System.Windows.Forms;
 
-namespace ImageGlass
-{
-    public partial class frmAbout : Form
-    {
-        public frmAbout()
-        {
-            InitializeComponent();
-        }
+namespace ImageGlass {
+    public partial class frmAbout: Form {
+        public frmAbout() => InitializeComponent();
 
-        private readonly Color M_COLOR_MENU_ACTIVE = Color.FromArgb(255, 220, 220, 220);
-        private readonly Color M_COLOR_MENU_HOVER = Color.FromArgb(255, 247, 247, 247);
-        private readonly Color M_COLOR_MENU_NORMAL = Color.FromArgb(255, 240, 240, 240);
+        private readonly Color M_COLOR_MENU_SELECTED = Color.FromArgb(255, 198, 203, 204);
+        private readonly Color M_COLOR_MENU_ACTIVE = Color.FromArgb(255, 145, 150, 153);
+        private readonly Color M_COLOR_MENU_HOVER = Color.FromArgb(255, 176, 181, 183);
+        private readonly Color M_COLOR_MENU_NORMAL = Color.FromArgb(255, 160, 165, 168);
 
         #region MOUSE ENTER - HOVER - DOWN MENU
-        private void lblMenu_MouseDown(object sender, MouseEventArgs e)
-        {
-            Label lbl = (Label)sender;
+        private void lblMenu_MouseDown(object sender, MouseEventArgs e) {
+            var lbl = (Label)sender;
             lbl.BackColor = M_COLOR_MENU_ACTIVE;
         }
 
-        private void lblMenu_MouseUp(object sender, MouseEventArgs e)
-        {
-            Label lbl = (Label)sender;
+        private void lblMenu_MouseUp(object sender, MouseEventArgs e) {
+            var lbl = (Label)sender;
 
-            if (int.Parse(lbl.Tag.ToString()) == 1)
-            {
-                lbl.BackColor = M_COLOR_MENU_ACTIVE;
+            if (int.Parse(lbl.Tag.ToString()) == 1) {
+                lbl.BackColor = M_COLOR_MENU_SELECTED;
             }
-            else
-            {
+            else {
                 lbl.BackColor = M_COLOR_MENU_HOVER;
             }
         }
 
-        private void lblMenu_MouseEnter(object sender, EventArgs e)
-        {
-            Label lbl = (Label)sender;
+        private void lblMenu_MouseEnter(object sender, EventArgs e) {
+            var lbl = (Label)sender;
 
-            if (int.Parse(lbl.Tag.ToString()) == 1)
-            {
-                lbl.BackColor = M_COLOR_MENU_ACTIVE;
+            if (int.Parse(lbl.Tag.ToString()) == 1) {
+                lbl.BackColor = M_COLOR_MENU_SELECTED;
             }
-            else
-            {
+            else {
                 lbl.BackColor = M_COLOR_MENU_HOVER;
             }
-
         }
 
-        private void lblMenu_MouseLeave(object sender, EventArgs e)
-        {
-            Label lbl = (Label)sender;
-            if (int.Parse(lbl.Tag.ToString()) == 1)
-            {
-                lbl.BackColor = M_COLOR_MENU_ACTIVE;
+        private void lblMenu_MouseLeave(object sender, EventArgs e) {
+            var lbl = (Label)sender;
+            if (int.Parse(lbl.Tag.ToString()) == 1) {
+                lbl.BackColor = M_COLOR_MENU_SELECTED;
             }
-            else
-            {
+            else {
                 lbl.BackColor = M_COLOR_MENU_NORMAL;
             }
         }
         #endregion
 
-        private void lblMenu_Click(object sender, EventArgs e)
-        {
-            Label lbl = (Label)sender;
+        private void lblMenu_Click(object sender, EventArgs e) {
+            var lbl = (Label)sender;
 
-            if (lbl.Name == "lblInfo")
-            {
+            if (lbl.Name == "lblInfo") {
                 tab1.SelectedTab = tpInfo;
             }
-            else if (lbl.Name == "lblComponent")
-            {
+            else if (lbl.Name == "lblComponent") {
                 tab1.SelectedTab = tpComponents;
             }
-            else if (lbl.Name == "lblReferences")
-            {
+            else if (lbl.Name == "lblReferences") {
                 tab1.SelectedTab = tpReferences;
             }
         }
 
-        private void frmAbout_Load(object sender, EventArgs e)
-        {
-            //this.RightToLeft = GlobalSetting.LangPack.IsRightToLeftLayout;
-            lblVersion.Text = String.Format(GlobalSetting.LangPack.Items["frmAbout.lblVersion"], 
-                                            Application.ProductVersion);
-            lblCopyright.Text = "Copyright © 2010-" + DateTime.Now.Year.ToString() + " by Dương Diệu Pháp\n" +
-                                "All rights reserved.";
+        private void frmAbout_Load(object sender, EventArgs e) {
+            var lang = Configs.Language.Items;
 
-            //Load item component
-            foreach (string f in Directory.GetFiles(Application.StartupPath))
-            {
-                if (Path.GetExtension(f).ToLower() == ".dll" ||
-                    Path.GetExtension(f).ToLower() == ".exe")
-                {
-                    fileList1.AddItems(f);
+            // this.RightToLeft = Configs.Language.IsRightToLeftLayout;
+            lblAppName.Text = Application.ProductName;
+            lblVersion.Text = string.Format(lang["frmAbout.lblVersion"], App.Version)
+                + (App.IsPortable ? " " + lang["frmAbout._PortableText"] : "");
+
+            lblCopyright.Text = "Copyright © 2010-" + DateTime.Now.Year.ToString() + " by Dương Diệu Pháp\nAll rights reserved.";
+
+            // Load item component
+            txtComponents.Text = "\r\n";
+            foreach (var f in Directory.GetFiles(Application.StartupPath)) {
+                var ext = Path.GetExtension(f).ToLower();
+
+                if (ext == ".dll" || ext == ".exe") {
+                    var fi = FileVersionInfo.GetVersionInfo(f);
+
+                    txtComponents.Text += $"{Path.GetFileName(f)} - {fi.FileVersion}\r\n" +
+                        $"{fi.LegalCopyright}\r\n" +
+                        $"{f}\r\n" +
+                        "-----------------------------------------\r\n\r\n";
                 }
             }
-            fileList1.ReLoadItems();
+            txtComponents.Text += "\r\n";
 
-            //Load language:
-            lblSlogant.Text = GlobalSetting.LangPack.Items["frmAbout.lblSlogant"];
-            lblInfo.Text = GlobalSetting.LangPack.Items["frmAbout.lblInfo"];
-            lblComponent.Text = GlobalSetting.LangPack.Items["frmAbout.lblComponent"];
-            lblReferences.Text = GlobalSetting.LangPack.Items["frmAbout.lblReferences"];
-            lblInfoContact.Text = GlobalSetting.LangPack.Items["frmAbout.lblInfoContact"];
-            lblSoftwareUpdate.Text = GlobalSetting.LangPack.Items["frmAbout.lblSoftwareUpdate"];
-            lnkCheckUpdate.Text = GlobalSetting.LangPack.Items["frmAbout.lnkCheckUpdate"];
-            this.Text = GlobalSetting.LangPack.Items["frmAbout._Text"];
-            
+            // Load language:
+            this.Text = lang["frmAbout._Text"];
+            lblSlogant.Text = lang["frmAbout.lblSlogant"];
+            lblInfo.Text = lang["frmAbout.lblInfo"];
+            lblComponent.Text = lang["frmAbout.lblComponent"];
+            lblReferences.Text = lang["frmAbout.lblReferences"];
+            lblInfoContact.Text = lang["frmAbout.lblInfoContact"];
+            lblSoftwareUpdate.Text = lang["frmAbout.lblSoftwareUpdate"];
+            lnkCheckUpdate.Text = lang["frmAbout.lnkCheckUpdate"];
         }
 
         #region IMAGEGLASS INFORMATION PANEL
-        private void lnkEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                Process.Start("mailto:d2phap@gmal.com");
+        private void lnkEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            try {
+                Process.Start("mailto:d2phap@gmail.com");
             }
             catch { }
         }
 
-        private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
+        private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            try {
                 Process.Start("skype:d2phap");
             }
             catch { }
         }
 
-        private void linkLabel4_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                Process.Start("tel:+841674710360");
-            }
-            catch { }
-        }
-        private void lnkIGHomepage_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                string version = Application.ProductVersion.Replace(".", "_");
-                Process.Start("http://www.imageglass.org?utm_source=app_" + version + "&utm_medium=app_click&utm_campaign=app_homepage");
+        private void lnkIGHomepage_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            try {
+                var version = App.Version;
+
+                Process.Start("https://imageglass.org?utm_source=app_" + version + "&utm_medium=app_click&utm_campaign=app_homepage");
             }
             catch { }
         }
 
-        private void lnkProjectPage_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                string version = Application.ProductVersion.Replace(".", "_");
-                Process.Start("http://www.imageglass.org/source?utm_source=app_" + version + "&utm_medium=app_click&utm_campaign=app_source");
+        private void lnkProjectPage_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            try {
+                var version = App.Version;
+
+                Process.Start("https://imageglass.org/source?utm_source=app_" + version + "&utm_medium=app_click&utm_campaign=app_source");
             }
             catch { }
         }
 
-        private void lnkFacebook_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
+        private void lnkFacebook_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            try {
                 Process.Start("https://www.facebook.com/ImageGlass");
             }
             catch { }
         }
 
-        private void lnkCheckUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process p = new Process();
-            p.StartInfo.FileName = Path.Combine(Application.StartupPath, "igcmd.exe");
-            p.StartInfo.Arguments = "igupdate";
-            p.Start();
+        private void lnkCheckUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            Program.CheckForUpdate();
         }
         #endregion
 
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            this.Close();
+        private void btnClose_Click(object sender, EventArgs e) {
+            Close();
         }
 
-        private void tab1_SelectedIndexChanged(object sender, EventArgs e)
-        {
+        private void tab1_SelectedIndexChanged(object sender, EventArgs e) {
             lblInfo.Tag = 0;
             lblComponent.Tag = 0;
             lblReferences.Tag = 0;
@@ -221,32 +182,37 @@ namespace ImageGlass
             lblComponent.BackColor = M_COLOR_MENU_NORMAL;
             lblReferences.BackColor = M_COLOR_MENU_NORMAL;
 
-            if (tab1.SelectedTab == tpInfo)
-            {
+            if (tab1.SelectedTab == tpInfo) {
                 lblInfo.Tag = 1;
                 lblInfo.BackColor = M_COLOR_MENU_ACTIVE;
-
             }
-            else if (tab1.SelectedTab == tpComponents)
-            {
+            else if (tab1.SelectedTab == tpComponents) {
                 lblComponent.Tag = 1;
                 lblComponent.BackColor = M_COLOR_MENU_ACTIVE;
             }
-            else if (tab1.SelectedTab == tpReferences)
-            {
+            else if (tab1.SelectedTab == tpReferences) {
                 lblReferences.Tag = 1;
                 lblReferences.BackColor = M_COLOR_MENU_ACTIVE;
             }
         }
 
-        private void btnDonation_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                string version = Application.ProductVersion.Replace(".", "_");
-                Process.Start("http://www.imageglass.org/source#donation?utm_source=app_" + version + "&utm_medium=app_click&utm_campaign=app_donation");
+        private void btnDonation_Click(object sender, EventArgs e) {
+            try {
+                var version = App.Version;
+
+                Process.Start("https://imageglass.org/source#donation?utm_source=app_" + version + "&utm_medium=app_click&utm_campaign=app_donation");
             }
             catch { }
+        }
+
+        private void lnkCollaborator_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            try {
+                Process.Start("https://github.com/fire-eggs");
+            }
+            catch { }
+        }
+
+        private void tb1_Paint(object sender, PaintEventArgs e) {
         }
     }
 }

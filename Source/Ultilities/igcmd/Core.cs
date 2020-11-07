@@ -1,7 +1,7 @@
 ﻿/*
 ImageGlass Project - Image viewer for Windows
-Copyright (C) 2013 DUONG DIEU PHAP
-Project homepage: http://imageglass.org
+Copyright (C) 2020 DUONG DIEU PHAP
+Project homepage: https://imageglass.org
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,125 +14,53 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using ImageGlass.Theme;
-using Ionic.Zip;
-using System.Windows.Forms;
-using System.Diagnostics;
+using ImageGlass.Base;
 using ImageGlass.Services;
-using ImageGlass.Services.Configuration;
+using ImageGlass.Settings;
+using System;
+using System.IO;
+using System.Windows.Forms;
 
-namespace igcmd
-{
-    public static class Core
-    {
+namespace igcmd {
+    public static class Core {
         /// <summary>
-        /// Pack theme *.igtheme
+        /// Check for update
         /// </summary>
-        /// <param name="dir">Thư mục chứa tập tin</param>
-        /// <param name="des">Đường dẫn tập tin *.igtheme</param>
-        public static void PackTheme(string src, string des)
-        {
-            if (!Directory.Exists(src))
-            {
-                return;
-            }
+        public static bool AutoUpdate() {
+            // Issue #520: intercept any possible exception and fail quietly
+            try {
+                Directory.CreateDirectory(App.ConfigDir(PathType.Dir, Dir.Temporary));
 
-            src = (src + "\\").Replace("\\\\", "\\");
-            Theme th = new Theme(src + "config.xml");
+                var updateXML = App.ConfigDir(PathType.File, Dir.Temporary, "update.xml");
+                var up = new Update(new Uri("https://imageglass.org/checkforupdate"), updateXML);
 
-            //create dir if is not exist
-            //des = (Application.StartupPath + "\\").Replace("\\\\", "\\") + "Themes\\";
-            //Directory.CreateDirectory(des);
+                if (File.Exists(updateXML)) {
+                    File.Delete(updateXML);
+                }
 
-            //if file exist, rename & backup
-            if (File.Exists(des))
-            {
-                File.Move(des, des + ".old");
-            }
-
-            try
-            {
-                using (ZipFile z = new ZipFile(des, Encoding.UTF8))
-                {
-                    z.AddDirectory(src, th.name);
-                    z.Save();
-                };
-            }
-            catch
-            {
-                //if file exist, rename & backup
-                if (File.Exists(des + ".old"))
-                {
-                    File.Move(des + ".old", des);
+                if (!up.IsError &&
+                    up.CheckForUpdate(App.StartUpDir("ImageGlass.exe")) &&
+                    string.Equals(up.Info.VersionType, "stable", StringComparison.CurrentCultureIgnoreCase)) {
+                    using (var f = new frmCheckForUpdate()) {
+                        f.ShowDialog();
+                    }
                 }
             }
+            catch { }
 
-            if (File.Exists(des + ".old"))
-            {
-                File.Delete(des + ".old");
-            }
+            return Configs.IsNewVersionAvailable;
         }
 
         /// <summary>
         /// Check for update
         /// </summary>
-        public static void AutoUpdate()
-        {
-            Update up = new Update(new Uri("http://www.imageglass.org/checkforupdate"),
-                GlobalSetting.StartUpDir + "update.xml");
-
-            if (File.Exists(GlobalSetting.StartUpDir + "update.xml"))
-            {
-                File.Delete(GlobalSetting.StartUpDir + "update.xml");
-            }
-
-            //save last update
-            GlobalSetting.SetConfig("AutoUpdate", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
-            
-            if (!up.IsError &&
-                up.CheckForUpdate(GlobalSetting.StartUpDir + "ImageGlass.exe") &&
-                up.Info.VersionType.ToLower() == "stable")
-            {
-                frmCheckForUpdate f = new frmCheckForUpdate();
-                f.ShowDialog();
-            }
-
-            Application.Exit();
-        }
-
-        /// <summary>
-        /// Check for update
-        /// </summary>
-        public static void CheckForUpdate()
-        {
+        public static bool CheckForUpdate() {
             Application.Run(new frmCheckForUpdate());
-        }
 
-        /// <summary>
-        /// Upload file
-        /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="filename"></param>
-        public static void Upload(string cmd, string filename)
-        {
-            Application.Run(new frmUpload(cmd, filename));
+            return Configs.IsNewVersionAvailable;
         }
-
-        /// <summary>
-        /// Install theme
-        /// </summary>
-        public static void InstallTheme(string filename)
-        {
-            Application.Run(new frmInstallTheme(filename));
-        }
-        
     }
 }

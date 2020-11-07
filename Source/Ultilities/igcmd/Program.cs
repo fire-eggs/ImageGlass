@@ -1,7 +1,7 @@
 ﻿/*
 ImageGlass Project - Image viewer for Windows
-Copyright (C) 2013 DUONG DIEU PHAP
-Project homepage: http://imageglass.org
+Copyright (C) 2020 DUONG DIEU PHAP
+Project homepage: https://imageglass.org
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,48 +14,87 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using ImageGlass.Library.Image;
+using ImageGlass.Settings;
 using System;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
+namespace igcmd {
+    internal static class Program {
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
 
-namespace igcmd
-{
-    static class Program
-    {
+        // Issue #360: IG periodically searching for dismounted device
+        [DllImport("kernel32.dll")]
+        private static extern ErrorModes SetErrorMode(ErrorModes uMode);
+
+        [Flags]
+        public enum ErrorModes: uint {
+            SYSTEM_DEFAULT = 0x0,
+            SEM_FAILCRITICALERRORS = 0x0001,
+            SEM_NOGPFAULTERRORBOX = 1 << 1,
+            SEM_NOALIGNMENTFAULTEXCEPT = 1 << 2,
+            SEM_NOOPENFILEERRORBOX = 1 << 15
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] args)
-        {
+        private static int Main(string[] args) {
+            // Issue #360: IG periodically searching for dismounted device
+            // This _must_ be executed first!
+            SetErrorMode(ErrorModes.SEM_FAILCRITICALERRORS);
+
+            var topcmd = args[0].ToLower().Trim();
+
+            // Windows Vista or later
+            if (Environment.OSVersion.Version.Major >= 6)
+                SetProcessDPIAware();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            string topcmd = args[0].ToLower().Trim();
 
-            if (topcmd == "igupdate")//kiem tra phien ban
-            {
-                Core.CheckForUpdate();
+            // Load user configs
+            Configs.Load();
+
+            // Set desktop wallpaper
+            #region setwallpaper <string imgPath> [int style]
+            if (topcmd == "setwallpaper") {
+                // Get image's path
+                var imgPath = args[1];
+                var style = DesktopWallapaper.Style.Current;
+
+                if (args.Length > 2) {
+                    // Get style
+                    Enum.TryParse(args[2], out style);
+                }
+
+                // Apply changes and return exit code
+                return (int)DesktopWallapaper.Set(imgPath, style);
             }
-            else if (topcmd == "igupload")
-            {
-                Core.Upload(args[1], args[2]);
+            #endregion
+
+            // check for update
+            else if (topcmd == "igupdate") {
+                return Core.CheckForUpdate() ? 1 : 0;
             }
-            else if (topcmd == "igautoupdate")//tu dong kiem tra phien ban
-            {
-                Core.AutoUpdate();
+
+            // auto check for update
+            else if (topcmd == "igautoupdate") {
+                return Core.AutoUpdate() ? 1 : 0;
             }
-            else if (topcmd == "igpacktheme")//dong goi theme thanh *.igtheme
-            {
-                //cmd: igcmd.exe igpacktheme "srcDir" "desFile"
-                Core.PackTheme(args[1], args[2]);
+
+            // run first launch configs
+            else if (topcmd == "firstlaunch") {
+                Application.Run(new frmFirstLaunch());
             }
-            else if (topcmd == "iginstalltheme")//cai dat theme
-            {
-                Core.InstallTheme(args[1]);
-            }
+
+            return 0;
         }
     }
 }

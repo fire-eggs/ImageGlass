@@ -18,18 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
 using System.IO;
-using System.Net.Mail;
+using System.Net;
+using System.Threading.Tasks;
 
-namespace ImageGlass.Library.Net
-{
-    public class FileDownloader
-    {
-        
+namespace ImageGlass.Library.Net {
+    public class FileDownloader {
         public event AmountDownloadedChangedEventHandler AmountDownloadedChanged;
         public delegate void AmountDownloadedChangedEventHandler(long iNewProgress);
         public event FileDownloadSizeObtainedEventHandler FileDownloadSizeObtained;
@@ -44,10 +38,7 @@ namespace ImageGlass.Library.Net
         /// <summary>
         /// Tập tin hiện tại
         /// </summary>
-        public string CurrentFile
-        {
-            get { return _currentFile; }
-        }
+        public string CurrentFile => _currentFile;
 
         /// <summary>
         /// Tải 1 tập tin
@@ -55,25 +46,16 @@ namespace ImageGlass.Library.Net
         /// <param name="URL">Liên kết của tập tin</param>
         /// <param name="filename">Nơi lưu</param>
         /// <returns></returns>
-        public bool DownloadFile(string URL, string filename)
-        {
-            try
-            {
+        public bool DownloadFile(string URL, string filename) {
+            try {
                 _currentFile = GetFileName(URL);
-                WebClient WC = new WebClient();
+                var WC = new WebClient();
                 WC.DownloadFile(URL, filename);
-                if (FileDownloadComplete != null)
-                {
-                    FileDownloadComplete();
-                }
+                FileDownloadComplete?.Invoke();
                 return true;
             }
-            catch (Exception ex)
-            {
-                if (FileDownloadFailed != null)
-                {
-                    FileDownloadFailed(ex);
-                }
+            catch (Exception ex) {
+                FileDownloadFailed?.Invoke(ex);
                 return false;
             }
         }
@@ -83,14 +65,11 @@ namespace ImageGlass.Library.Net
         /// </summary>
         /// <param name="URL">Liên kết</param>
         /// <returns></returns>
-        private string GetFileName(string URL)
-        {
-            try
-            {
+        private static string GetFileName(string URL) {
+            try {
                 return URL.Substring(URL.LastIndexOf("/") + 1);
             }
-            catch
-            {
+            catch {
                 return URL;
             }
         }
@@ -101,76 +80,52 @@ namespace ImageGlass.Library.Net
         /// <param name="URL">Liên kết của tập tin</param>
         /// <param name="filename">Đương dẫn lưu tập tin</param>
         /// <returns></returns>
-        public bool DownloadFileWithProgress(string URL, string filename)
-        {
-            FileStream fs = default(FileStream);
-            try
-            {
+        public async Task<bool> DownloadFileWithProgress(string URL, string filename) {
+            FileStream fs = default;
+            try {
                 _currentFile = GetFileName(URL);
-                WebRequest wRemote = default(WebRequest);
-                byte[] bBuffer = null;
-                bBuffer = new byte[257];
-                int iBytesRead = 0;
-                int iTotalBytesRead = 0;
+                WebRequest wRemote = default;
+                var bBuffer = new byte[257];
+                var iBytesRead = 0;
+                var iTotalBytesRead = 0;
 
                 fs = new FileStream(filename, FileMode.Create, FileAccess.Write);
                 wRemote = WebRequest.Create(URL);
-                WebResponse myWebResponse = wRemote.GetResponse();
+                var myWebResponse = await wRemote.GetResponseAsync().ConfigureAwait(true);
 
-                if (FileDownloadSizeObtained != null)
-                {
-                    FileDownloadSizeObtained(myWebResponse.ContentLength);
-                }
-                Stream sChunks = myWebResponse.GetResponseStream();
+                FileDownloadSizeObtained?.Invoke(myWebResponse.ContentLength);
+                var sChunks = myWebResponse.GetResponseStream();
 
-                do
-                {
-                    iBytesRead = sChunks.Read(bBuffer, 0, 256);
-                    fs.Write(bBuffer, 0, iBytesRead);
+                do {
+                    iBytesRead = await sChunks.ReadAsync(bBuffer, 0, 256).ConfigureAwait(true);
+                    await fs.WriteAsync(bBuffer, 0, iBytesRead).ConfigureAwait(true);
                     iTotalBytesRead += iBytesRead;
 
-                    if (myWebResponse.ContentLength < iTotalBytesRead)
-                    {
-                        if (AmountDownloadedChanged != null)
-                        {
-                            AmountDownloadedChanged(myWebResponse.ContentLength);
-                        }
+                    if (myWebResponse.ContentLength < iTotalBytesRead) {
+                        AmountDownloadedChanged?.Invoke(myWebResponse.ContentLength);
                     }
-                    else
-                    {
-                        if (AmountDownloadedChanged != null)
-                        {
-                            AmountDownloadedChanged(iTotalBytesRead);
-                        }
+                    else {
+                        AmountDownloadedChanged?.Invoke(iTotalBytesRead);
                     }
-                } while (!(iBytesRead == 0));
+                } while (iBytesRead != 0);
 
                 sChunks.Close();
                 fs.Close();
 
-                if (FileDownloadComplete != null)
-                {
-                    FileDownloadComplete();
-                }
+                FileDownloadComplete?.Invoke();
 
                 return true;
             }
-            catch (Exception ex)
-            {
-                if ((fs != null))
-                {
+            catch (Exception ex) {
+                if (fs != null) {
                     fs.Close();
                     fs = null;
                 }
 
-                if (FileDownloadFailed != null)
-                {
-                    FileDownloadFailed(ex);
-                }
+                FileDownloadFailed?.Invoke(ex);
                 return false;
             }
         }
-
 
         /// <summary>
         /// Định dạng đơn vị dung lượng tập tin
@@ -178,48 +133,38 @@ namespace ImageGlass.Library.Net
         /// <param name="size">Kích thước tập tin dạng số</param>
         /// <param name="donVi">Chuỗi đơn vị xuất ra</param>
         /// <returns></returns>
-        public static string FormatFileSize(double size, ref string donVi)
-        {
-            try
-            {
-                int KB = 1024;
-                long MB = KB * KB;
+        public static string FormatFileSize(double size, ref string donVi) {
+            try {
+                const int KB = 1024;
+                const long MB = KB * KB;
 
                 // Return size of file in kilobytes.
-                if (size < KB)
-                {
+                if (size < KB) {
                     donVi = " bytes";
                     return size.ToString("D");
                 }
-                else
-                {
-                    double fs = size / KB;
+                else {
+                    var fs = size / KB;
 
-                    if (fs < 1000)
-                    {
+                    if (fs < 1000) {
                         donVi = " KB";
                         return fs.ToString("N");
                     }
-                    else if (fs < 1000000)
-                    {
+                    else if (fs < 1000000) {
                         donVi = " MB";
                         return (size / MB).ToString("N");
                     }
-                    else if (fs < 10000000)
-                    {
+                    else if (fs < 10000000) {
                         donVi = " GB";
                         return (size / MB / KB).ToString("N");
                     }
                 }
             }
-            catch
-            {
+            catch {
                 return size.ToString();
             }
 
             return "";
         }
-
-
     }
 }

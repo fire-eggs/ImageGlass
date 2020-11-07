@@ -1,6 +1,6 @@
 ﻿/*
 ImageGlass Project - Image viewer for Windows
-Copyright (C) 2015 DUONG DIEU PHAP
+Copyright (C) 2020 DUONG DIEU PHAP
 Project homepage: http://imageglass.org
 
 This program is free software: you can redistribute it and/or modify
@@ -22,18 +22,15 @@ using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
 
-namespace ImageGlass.Library
-{
-    public static class Menu
-    {
+namespace ImageGlass.Library {
+    public static class Menu {
         /// <summary>
         /// Clone ToolStripMenu item
         /// </summary>
         /// <param name="mnu">ToolStripMenuItem</param>
         /// <returns></returns>
-        public static ToolStripMenuItem Clone(ToolStripMenuItem mnu)
-        {
-            ToolStripMenuItem m = new ToolStripMenuItem();
+        public static ToolStripMenuItem Clone(ToolStripMenuItem mnu) {
+            var m = new ToolStripMenuItem();
 
             //clone all events
             var eventsField = typeof(Component).GetField("events", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -57,6 +54,7 @@ namespace ImageGlass.Library
             m.DisplayStyle = mnu.DisplayStyle;
             m.Dock = mnu.Dock;
             m.DoubleClickEnabled = mnu.DoubleClickEnabled;
+            m.DropDown = mnu.DropDown;
             m.Enabled = mnu.Enabled;
             m.Font = mnu.Font;
             m.ForeColor = mnu.ForeColor;
@@ -74,6 +72,7 @@ namespace ImageGlass.Library
 
             m.ShortcutKeys = mnu.ShortcutKeys;
             m.ShowShortcutKeys = mnu.ShowShortcutKeys;
+            m.ShortcutKeyDisplayString = mnu.ShortcutKeyDisplayString;
             m.Tag = mnu.Tag;
             m.Text = mnu.Text;
             m.TextAlign = mnu.TextAlign;
@@ -83,8 +82,7 @@ namespace ImageGlass.Library
 
             m.Available = mnu.Available;
 
-            if (!mnu.AutoSize)
-            {
+            if (!mnu.AutoSize) {
                 m.Size = mnu.Size;
             }
             return m;
